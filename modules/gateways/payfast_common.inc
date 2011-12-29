@@ -28,8 +28,8 @@
 global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
-define( 'PF_MODULE_NAME', 'PayFast-WHMCS_4' );
-define( 'PF_MODULE_VER', '1.12' );
+define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
+define( 'PF_MODULE_VER', '1.2' );
 
 // Features
 // - PHP
