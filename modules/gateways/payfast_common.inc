@@ -2,7 +2,7 @@
 /**
  * payfast_common.inc
  * 
- * Copyright (c) 2009-2011 PayFast (Pty) Ltd
+ * Copyright (c) 2009-2012 PayFast (Pty) Ltd
  *
  * LICENSE:
  * 
@@ -20,7 +20,7 @@
  * General Public License.
  * 
  * @author     Jonathan Smit
- * @copyright  2009-2011 PayFast (Pty) Ltd
+ * @copyright  2009-2012 PayFast (Pty) Ltd
  * @license    http://www.opensource.org/licenses/lgpl-license.php LGPL
  */
 //// Create user agent string
@@ -29,7 +29,7 @@ global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
-define( 'PF_MODULE_VER', '1.2' );
+define( 'PF_MODULE_VER', '1.13' );
 
 // Features
 // - PHP

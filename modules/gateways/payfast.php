@@ -2,7 +2,7 @@
 /**
  * payfast.php
  * 
- * Copyright (c) 2010-2011 PayFast (Pty) Ltd
+ * Copyright (c) 2010-2012 PayFast (Pty) Ltd
  *
  * LICENSE:
  * 
@@ -17,7 +17,7 @@
  * License for more details.
  * 
  * @author     Jonathan Smit
- * @copyright  2010-2011 PayFast (Pty) Ltd
+ * @copyright  2010-2012 PayFast (Pty) Ltd
  * @license    http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link       http://www.payfast.co.za/help/whmcs
  */
@@ -78,7 +78,7 @@ function payfast_link( $params )
     }
 
     // Create URLs
-    $returnUrl = $params['systemurl'] .'/cart.php?a=complete';
+    $returnUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $cancelUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $notifyUrl = $params['systemurl'] .'/modules/gateways/callback/payfast.php';
     

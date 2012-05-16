@@ -1,4 +1,4 @@
-PayFast WHMCS v4 Module v1.12 for WHMCS v4.5.2 & v5.0
+PayFast WHMCS v4 Module v1.13 for WHMCS v4.5.2 & v5.0
 ------------------------------------------------------------------------------
 Copyright (c) 2010-2011 PayFast (Pty) Ltd
 
