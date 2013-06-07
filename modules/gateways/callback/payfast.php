@@ -52,12 +52,7 @@ $pfParamString = '';
 
 pflog( 'PayFast ITN call received' );
 
-//// Notify PayFast that information has been received
-if( !$pfError )
-{
-    header( 'HTTP/1.0 200 OK' );
-    flush();
-}
+
 
 //// Get data sent by PayFast
 if( !$pfError )
@@ -151,6 +146,8 @@ if( $pfError )
 {
     pflog( 'Error occurred: '. $pfErrMsg );
     pflog( 'Sending email notification' );
+
+
     
      // Send an email
     $subject = "PayFast ITN error: ". $pfErrMsg;
@@ -180,6 +177,13 @@ if( $pfError )
         pflog( 'Mailer Error: '. $mail->ErrorInfo );
     else
         pflog( 'Message sent!' );
+    header('X-Error-Message: '. $pfErrMsg, true, 500);
+    die();
+}
+else
+{
+    header( 'HTTP/1.0 200 OK' );
+    flush();
 }
 
 // Close log
