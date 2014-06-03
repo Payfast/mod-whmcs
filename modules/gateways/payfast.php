@@ -98,7 +98,7 @@ function payfast_link( $params )
         // Buyer Details
         'name_first' => $params['clientdetails']['firstname'],
         'name_last' => $params['clientdetails']['lastname'],
-        'email_address' => $params['clientdetails']['email'],
+        'email_address' => trim($params['clientdetails']['email']),
 
         // Item details
     	'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
