@@ -37,6 +37,8 @@ function payfast_config()
             'Description' => 'Your Merchant ID as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast', ),
         'merchant_key'  => array( 'FriendlyName' => 'Merchant Key', 'Type' => 'text', 'Size' => '20',
             'Description' => 'Your Merchant Key as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast', ),
+        'passphrase'  => array( 'FriendlyName' => 'PassPhrase', 'Type' => 'text', 'Size' => '32',
+            'Description' => 'DO NOT SET THIS UNLESS YOU HAVE SET IT ON THE <a href="http://www.payfast.co.za/acc/integration">Integration</a> PAGE ON PayFast', ),
         'test_mode' => array( 'FriendlyName' => 'Test Mode', 'Type' => 'yesno',
             'Description' => 'Check this to put the interface in test mode', ),
         'debug' => array( 'FriendlyName' => 'Debugging', 'Type' => 'yesno',
@@ -101,20 +103,34 @@ function payfast_link( $params )
         'email_address' => trim($params['clientdetails']['email']),
 
         // Item details
-    	'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
-    	'item_description' => $description,
-    	'amount' => number_format( $params['amount'], 2, '.', '' ),
         'm_payment_id' => $params['invoiceid'],
-        'currency_code' => $params['currency'],
-        
-        // Other
-        'user_agent' => PF_USER_AGENT,
+        'amount' => number_format( $params['amount'], 2, '.', '' ),
+    	'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
+    	'item_description' => $description    	
         );
+
+    $secureString = '';
+    foreach( $data as $k=>$v )
+    {
+        $secureString .= $k.'='.urlencode( htmlspecialchars( trim( $v ) ) ).'&';
+    }
+
+    if( !empty( $params['passphrase'] ) && $params['test_mode'] == 'on' )
+    {
+        $secureString .= 'passphrase='.$params['passphrase'];
+    }
+    else
+    {
+        $secureString = substr( $secureString, 0, -1 );
+    }
+    $data['signature'] = md5( $secureString );
 
     // Output the form
     $output = '<form id="payfast_form" name="payfast_form" action="'. $payfastUrl .'" method="post">';
     foreach( $data as $name => $value )
-        $output .= '<input type="hidden" name="'.$name.'" value="'. htmlspecialchars( $value ) .'">';
+    {
+        $output .= '<input type="hidden" name="'.$name.'" value="'. $value .'">';
+    }
 
     $output .= '<input type="submit" value="Pay Now" />';
     $output .= '</form>';

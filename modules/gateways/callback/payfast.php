@@ -81,8 +81,10 @@ if( !$pfError )
 {
     pflog( 'Verify security signature' );
 
+    $passphrase = $GATEWAY['test_mode'] != 'on' && !empty( $GATEWAY['passphrase'] ) ? $GATEWAY['passphrase'] : null;
+
     // If signature different, log for debugging
-    if( !pfValidSignature( $pfData, $pfParamString ) )
+    if( !pfValidSignature( $pfData, $pfParamString, $passphrase ) )
     {
         $pfError = true;
         $pfErrMsg = PF_ERR_INVALID_SIGNATURE;

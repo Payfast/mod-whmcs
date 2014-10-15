@@ -29,7 +29,7 @@ global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
-define( 'PF_MODULE_VER', '1.13' );
+define( 'PF_MODULE_VER', '1.2.0' );
 
 // Features
 // - PHP
@@ -79,7 +79,7 @@ define( 'PF_MSG_PENDING',
     ' Transaction Notification when the payment status changes to'.
     ' "Completed", or "Failed"' );
 
-// {{{ pfLog
+
 /**
  * pflog
  *
@@ -120,8 +120,7 @@ function pflog( $msg = '', $close = false )
         }
     }
 }
-// }}}
-// {{{ pfGetData
+
 /**
  * pfGetData
  *  
@@ -142,19 +141,18 @@ function pfGetData()
     else
         return( $pfData );
 }
-// }}}
-// {{{ pfValidSignature
+
 /**
  * pfValidSignature
  * 
  * @author Jonathan Smit
  */
-function pfValidSignature( $pfData = null, &$pfParamString = null )
+function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase = null )
 {
     // Dump the submitted variables and calculate security signature
     foreach( $pfData as $key => $val )
     {
-    	if( $key != 'signature' )
+        if( $key != 'signature' )
         {
             $pfParamString .= $key .'='. urlencode( $val ) .'&';
         }
@@ -166,16 +164,26 @@ function pfValidSignature( $pfData = null, &$pfParamString = null )
 
     // Remove the last '&' from the parameter string
     $pfParamString = substr( $pfParamString, 0, -1 );
-    $signature = md5( $pfParamString );
+
+    if( !is_null( $pfPassphrase ) )
+    {
+        $pfParamStringWithPassphrase = $pfParamString."&passphrase=". urlencode( $pfPassphrase );
+        $signature = md5( $pfParamStringWithPassphrase );
+    }
+    else
+    {
+        $signature = md5( $pfParamString );
+    }
+
     
     $result = ( $pfData['signature'] == $signature );
 
     pflog( 'Signature = '. ( $result ? 'valid' : 'invalid' ) );
-
+    pflog('PFString = '.$pfParamString);
+    
     return( $result );
 }
-// }}}
-// {{{ pfValidData
+
 /**
  * pfValidData
  *
@@ -271,8 +279,7 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfPro
     else
         return( false );
 }
-// }}}
-// {{{ pfValidIP
+
 /**
  * pfValidIP
  *
@@ -309,8 +316,7 @@ function pfValidIP( $sourceIP )
     else
         return( false );
 }
-// }}}
-// {{{ pfAmountsEqual
+
 /**
  * pfAmountsEqual
  * 
@@ -331,5 +337,5 @@ function pfAmountsEqual( $amount1, $amount2 )
     else
         return( true );
 }
-// }}}
+
 ?>
