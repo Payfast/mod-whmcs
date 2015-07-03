@@ -115,7 +115,7 @@ function payfast_link( $params )
         $secureString .= $k.'='.urlencode( htmlspecialchars( trim( $v ) ) ).'&';
     }
 
-    if( !empty( $params['passphrase'] ) && $params['test_mode'] == 'on' )
+    if( !empty( $params['passphrase'] ) || $params['test_mode'] != 'on' )
     {
         $secureString .= 'passphrase='.$params['passphrase'];
     }
