@@ -115,14 +115,15 @@ function payfast_link( $params )
         $secureString .= $k.'='.urlencode( htmlspecialchars( trim( $v ) ) ).'&';
     }
 
-    if( !empty( $params['passphrase'] ) || $params['test_mode'] != 'on' )
-    {
-        $secureString .= 'passphrase='.$params['passphrase'];
-    }
-    else
+    if( empty( $params['passphrase'] ) || $params['test_mode'] == 'on' )
     {
         $secureString = substr( $secureString, 0, -1 );
     }
+    else
+    {
+        $secureString .= 'passphrase='.$params['passphrase'];
+    }
+    
     $data['signature'] = md5( $secureString );
 
     // Output the form
