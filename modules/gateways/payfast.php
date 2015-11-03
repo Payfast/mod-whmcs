@@ -125,6 +125,7 @@ function payfast_link( $params )
     }
     
     $data['signature'] = md5( $secureString );
+    $data['user_agent'] = 'WHMCS 6.x';
 
     // Output the form
     $output = '<form id="payfast_form" name="payfast_form" action="'. $payfastUrl .'" method="post">';
