@@ -40,7 +40,9 @@ if( !$GATEWAY['type'] )
 
 // Include the PayFast common file
 define( 'PF_DEBUG', ( $GATEWAY['debug'] == 'on' ? true : false ) );
-require_once( '../payfast_common.inc' );
+require_once('../payfast/payfast_common.inc');
+
+//logActivity( 'PayFast Itn Received' );
 
 // Variable Initialization
 $pfError = false;
@@ -68,6 +70,7 @@ if( !$pfError )
     $pfData = pfGetData();
 
     pflog( 'PayFast Data: '. print_r( $pfData, true ) );
+    //logActivity( 'PayFast Data: '. print_r( $pfData, true ) );
 
     if( $pfData === false )
     {
@@ -110,7 +113,7 @@ if( !$pfError )
     
     // Checks invoice ID is a valid invoice number or ends processing
     $whInvoiceID = checkCbInvoiceID( $pfData['m_payment_id'], $GATEWAY['name'] );
-    
+    //( ' this is the invoice id returned: ' . $whInvoiceID );
     // Checks transaction number isn't already in the database and ends processing if it does
     checkCbTransID( $pfData['pf_payment_id'] );
 }
@@ -138,13 +141,14 @@ if( !$pfError )
     {
         // Successful
         addInvoicePayment( $whInvoiceID, $pfData['pf_payment_id'],
-            $pfData['amount'], -1 * $pfData['amount_fee'], $gatewaymodule );
+            $pfData['amount_gross'], -1 * $pfData['amount_fee'], $gatewaymodule );
     	logTransaction( $GATEWAY['name'], $_POST, 'Successful' );
     }
     else
     {
     	// Unsuccessful
         logTransaction( $GATEWAY['name'], $_POST, 'Unsuccessful' );
+
     }
 }
 
