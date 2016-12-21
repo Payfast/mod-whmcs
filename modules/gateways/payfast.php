@@ -150,6 +150,10 @@ function payfast_link( $params )
     }
 
     // Create URLs
+    if ( substr( $params['systemurl'], -1 ) == '/' )
+    {
+        $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
+    }
     $returnUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $cancelUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $notifyUrl = $params['systemurl'] .'/modules/gateways/callback/payfast.php';
