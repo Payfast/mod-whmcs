@@ -3,21 +3,21 @@
  * payfast.php
  *
  * PayFast ITN handler
- * 
+ *
  * Copyright (c) 2010-2011 PayFast (Pty) Ltd
  *
  * LICENSE:
- * 
+ *
  * This payment module is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This payment module is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
  * License for more details.
- * 
+ *
  * @author     Jonathan Smit
  * @copyright  2010-2011 PayFast (Pty) Ltd
  * @license    http://www.opensource.org/licenses/lgpl-license.php LGPL
@@ -26,6 +26,7 @@
 
 # Required File Includes
 include( "../../../init.php" );
+//include( "../../../dbconnect.php" );
 include( "../../../includes/functions.php" );
 include( "../../../includes/gatewayfunctions.php" );
 include( "../../../includes/invoicefunctions.php" );
@@ -41,6 +42,7 @@ if( !$GATEWAY['type'] )
 // Include the PayFast common file
 define( 'PF_DEBUG', ( $GATEWAY['debug'] == 'on' ? true : false ) );
 require_once('../payfast/payfast_common.inc');
+require_once( "../../../modules/gateways/payfast/v6_include.php" );
 
 //logActivity( 'PayFast Itn Received' );
 
@@ -84,7 +86,18 @@ if( !$pfError )
 {
     pflog( 'Verify security signature' );
 
-    $passphrase = $GATEWAY['test_mode'] != 'on' && !empty( $GATEWAY['passphrase'] ) ? $GATEWAY['passphrase'] : null;
+    if ( $GATEWAY['test_mode'] == 'on' )
+    {
+        $passphrase = 'payfast';
+    }
+    elseif ( empty( $GATEWAY['passphrase'] ) && $GATEWAY['test_mode'] != 'on' )
+    {
+        $passphrase = null;
+    }
+    else
+    {
+        $passphrase = $GATEWAY['passphrase'];
+    }
 
     // If signature different, log for debugging
     if( !pfValidSignature( $pfData, $pfParamString, $passphrase ) )
@@ -110,12 +123,17 @@ if( !$pfError && !defined( 'PF_DEBUG' ) )
 if( !$pfError )
 {
     pflog( "Check order hasn't been processed" );
-    
+
+    $invId = is_numeric( $pfData['item_description'] ) ? $pfData['item_description'] : $pfData['m_payment_id'];
+
     // Checks invoice ID is a valid invoice number or ends processing
-    $whInvoiceID = checkCbInvoiceID( $pfData['m_payment_id'], $GATEWAY['name'] );
+    $whInvoiceID = checkCbInvoiceID( $invId, $GATEWAY['name'] );
     //( ' this is the invoice id returned: ' . $whInvoiceID );
     // Checks transaction number isn't already in the database and ends processing if it does
-    checkCbTransID( $pfData['pf_payment_id'] );
+    if ( $pfData['payment_status'] == 'COMPLETE' )
+    {
+        checkCbTransID( $pfData['pf_payment_id'] );
+    }
 }
 
 //// Verify data received
@@ -135,18 +153,30 @@ if( !$pfError )
 //// Check status and update order
 if( !$pfError )
 {
+    //  require_once( 'payfast/' . getVer() );
     pflog( 'Check status and update order' );
-    
+
     if( $pfData['payment_status'] == "COMPLETE" )
     {
         // Successful
         addInvoicePayment( $whInvoiceID, $pfData['pf_payment_id'],
             $pfData['amount_gross'], -1 * $pfData['amount_fee'], $gatewaymodule );
-    	logTransaction( $GATEWAY['name'], $_POST, 'Successful' );
+        logTransaction( $GATEWAY['name'], $_POST, 'Successful' );
+
+        if ( !empty( $pfData['token'] ) )
+        {
+            setSubscriptionId( $pfData['token'], $pfData['custom_int1'] );
+            setDomainStatus( $pfData['custom_int1'] );
+        }
+    }
+    elseif ( $pfData['payment_status'] == 'CANCELLED' )
+    {
+        setTblHostingCancelStatus( $pfData['custom_int1'] );
+        setTblOrdersCancelStatus( $pfData['m_payment_id'] );
     }
     else
     {
-    	// Unsuccessful
+        // Unsuccessful
         logTransaction( $GATEWAY['name'], $_POST, 'Unsuccessful' );
 
     }
@@ -157,8 +187,8 @@ if( $pfError )
 {
     pflog( 'Error occurred: '. $pfErrMsg );
     pflog( 'Sending email notification' );
-    
-     // Send an email
+
+    // Send an email
     $subject = "PayFast ITN error: ". $pfErrMsg;
     $body =
         "Hi,\n\n".
@@ -167,7 +197,7 @@ if( $pfError )
         "Site: ". $CONFIG['CompanyName'] ."\n".
         "Remote IP Address: ". $_SERVER['REMOTE_ADDR'] ."\n".
         "Remote host name: ". gethostbyaddr( $_SERVER['REMOTE_ADDR'] ) ."\n";
-    if( isset( $pfData['pf_payment_id'] ) )        
+    if( isset( $pfData['pf_payment_id'] ) )
         $body .= "Order ID: ". $pfData['m_payment_id'] ."\n";
     if( isset( $pfData['pf_payment_id'] ) )
         $body .= "PayFast Transaction ID: ". $pfData['pf_payment_id'] ."\n";
@@ -181,7 +211,7 @@ if( $pfError )
     $mail->Subject = $subject;
     $mail->IsHTML( false );
     $mail->Body = $body;
-    
+
     if( !$mail->Send())
         pflog( 'Mailer Error: '. $mail->ErrorInfo );
     else

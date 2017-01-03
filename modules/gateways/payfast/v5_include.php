@@ -27,9 +27,9 @@
 function getInvoiceHostingItems($invoiceId )
 {
     $resource = full_query("SELECT * FROM `tblinvoiceitems` WHERE `type`='Hosting' AND  `invoiceid`='" . $invoiceId. "'");
-    
+
     $items = [];
-    
+
     while( $item = mysql_fetch_assoc( $resource ) )
     {
         $items[] = $item;
@@ -113,4 +113,29 @@ function getProduct($id )
     $resource = full_query("SELECT * FROM `tblproducts` WHERE `id`='" . $id. "'");
     $item = mysql_fetch_assoc( $resource );
     return $item;
+}
+
+/**
+ * setSubscriptionId
+ *
+ *
+ *
+ * @date 2016-11-18
+ * @version 1.0.0
+ * @access
+ *
+ * @author Brendon Posen<brendon.posen@payfast.co.za>
+ * @since 1.0.0
+ *
+ *  @param $subId
+ * @param $orderId
+ * @return boolean
+ *
+ *
+ */
+function setSubscriptionId( $subId, $orderId )
+{
+    full_query("UPDATE `tblhosting` SET `subscriptionid` = '" . $subId . "' WHERE `orderid` = '" . $orderId . "'");
+
+    return true;
 }

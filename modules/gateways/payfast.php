@@ -1,27 +1,29 @@
 <?php
 /**
  * payfast.php
- * 
+ *
  * Copyright (c) 2010-2012 PayFast (Pty) Ltd
  *
  * LICENSE:
- * 
+ *
  * This payment module is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published
  * by the Free Software Foundation; either version 3 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This payment module is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
  * License for more details.
- * 
+ *
  * @author     Jonathan Smit
  * @copyright  2010-2012 PayFast (Pty) Ltd
  * @license    http://www.opensource.org/licenses/lgpl-license.php LGPL
  * @link       http://www.payfast.co.za/help/whmcs
  */
- 
+
+
+
 // {{{ payfast_config()
 /**
  * payfast_config()
@@ -39,13 +41,13 @@ function payfast_config()
             'Description' => 'Your Merchant Key as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast', ),
         'passphrase'  => array( 'FriendlyName' => 'PassPhrase', 'Type' => 'text', 'Size' => '32',
             'Description' => '!!!!!!!!DO NOT SET THIS UNLESS YOU HAVE SET IT ON THE <a href="http://www.payfast.co.za/acc/integration">Integration</a> PAGE ON PayFast!!!!!!!!', ),
-        'enable_recurring' => array( 'FriendlyName' => 'Enable Recurring Billing', 'Type' => 'yesno', 'Description' => '!!!!!! You need to enable Subscriptions on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast!!!!!!!!'),
+        'enable_recurring' => array( 'FriendlyName' => 'Enable Recurring Billing', 'Type' => 'yesno', 'Description' => '!!!!!! You need to enable Ad Hoc Payments on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast!!!!!!!!'),
         'force_recurring' => array( 'FriendlyName' => 'Force Recurring Billing', 'Type' => 'yesno', 'Description' => 'Hide the one time payment when a subscription can be created'),
         'test_mode' => array( 'FriendlyName' => 'Test Mode', 'Type' => 'yesno',
             'Description' => 'Check this to put the interface in test mode', ),
         'debug' => array( 'FriendlyName' => 'Debugging', 'Type' => 'yesno',
             'Description' => 'Check this to turn debugging on', ),
-        );
+    );
 
     return( $configArray );
 }
@@ -71,55 +73,36 @@ function payfast_link( $params )
     $output = '';
     $subscriptionData = array();
     $forceOneTime = true;
-    
+
     $invoiceItems = getInvoiceItems( $params['invoiceid'] );
+
+    $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
+    $item = $invoiceHostingItems[0];
+
+    $tblhosting = Illuminate\Database\Capsule\Manager::table('tblhosting')
+        ->where('id', $item['relid'])
+        ->get();
+
+    $domainStatus = $tblhosting[0]->domainstatus;
 
     if( $subscriptionEnabled )
     {
+        $forceOneTime = false;
         $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
 
         // Determine that there is only one hosting subscription
         // Select the items from the invoice
         if( count( $invoiceHostingItems ) == 1 )
         {
-            $forceOneTime = false;
+            $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
             $item = $invoiceHostingItems[0];
 
             $hosting = getHosting( $item['relid'] );
-            
-            $product = getProduct( $hosting['packageid'] );
-
-            $frequencyMap = array(
-                'Monthly' => 3,
-                'Quarterly' => 4,
-                'Semi-Annually' => 5,
-                'Annually' => 6
-            );
-            switch ( $hosting['billingcycle'] )
+            if( !$forceOneTime )
             {
-                case 'Monthly':
-                case 'Quarterly':
-                case 'Semi-Annually':
-                case 'Annually':
-                    $frequency = $frequencyMap[$hosting['billingcycle']];
-                    break;
-                case 'One Time':
-                default;
-                    $forceOneTime = true;
-                    break;
-            }
-
-            // If only one hosting subscription, get the frequency and cycles and build up the subscription button
-            if(!$forceOneTime)
-            {
-                $subscriptionData['item_name'] = $item['description'];
-                $subscriptionData['subscription_type'] = 1;
-                $subscriptionData['recurring_amount'] = $hosting['amount'];
-                $subscriptionData['frequency'] = $frequency;
-                if($product['recurringcycles'] > 0)
-                {
-                    $subscriptionData['cycles'] = $product['recurringcycles'];
-                }
+                $subscriptionData['custom_int1'] = $hosting['orderid'];
+                //    $subscriptionData['custom_str1'] = 'payfast-adhoc';
+                $subscriptionData['subscription_type'] = 2;
             }
         }
         else
@@ -127,15 +110,11 @@ function payfast_link( $params )
             // If multiple hosting subscription, only show the invoice total
             $forceOneTime = true;
         }
-
-
-    
-
-
     }
+
     $pfHost = ( ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
     $payfastUrl = 'https://'. $pfHost .'/eng/process';
-    
+
     // If NOT test mode, use normal credentials
     if( $params['test_mode'] != 'on' )
     {
@@ -145,8 +124,8 @@ function payfast_link( $params )
     // If test mode, use generic sandbox credentials
     else
     {
-        $merchantId = '10000100';
-        $merchantKey = '46f0cd694581a';
+        $merchantId = '10004002';
+        $merchantKey = 'q1cd2rdny4a53';
     }
 
     // Create URLs
@@ -157,11 +136,11 @@ function payfast_link( $params )
     $returnUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $cancelUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
     $notifyUrl = $params['systemurl'] .'/modules/gateways/callback/payfast.php';
-    
+
     // Create description
     // Line item details are not available in the $params variable
     $description = '';
-    
+
     foreach( $invoiceItems as $k=>$item )
     {
         $description .= $item['description'] . "|";
@@ -184,35 +163,36 @@ function payfast_link( $params )
         // Item details
         'm_payment_id' => $params['invoiceid'],
         'amount' => number_format( $params['amount'], 2, '.', '' ),
-    	'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
-    	//'item_description' => $description
-        );
+        'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
+        //'item_description' => $description
+    );
 
     if( !$forceOneTime )
     {
-        $dataForSig = array_merge( $data, $subscriptionData );
-        $subscriptionData['signature'] = generateSignature($params, $dataForSig);
-
-        //logActivity( print_r( $dataForSig,true) );
+        if ( $forceSubscription || $subscriptionEnabled )
+        {
+            $dataForSig = array_merge( $data, $subscriptionData );
+            $subscriptionData['signature'] = generateSignature( $params, $dataForSig );
+        }
     }
 
     $data['signature'] = generateSignature($params, $data);
 
 
     $data['user_agent'] = 'WHMCS 6.x';
-    if( !$forceOneTime )
+    if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) )
     {
-        $button = '<input type="submit" value="Subscribe Now">';
-        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button );
+        $button = '<input type="image" align="centre" src="'. $params['systemurl']. '/modules/gateways/payfast/images/light-small-subscribe.png" value="Subscribe Now">';
+        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $domainStatus );
         $output .= '&nbsp;';
     }
 
-    if( $forceOneTime || (!$forceOneTime && !$forceSubscription ) )
+    if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) )
     {
-        $output .= generateForm( $payfastUrl, $data);
+        $output .= generateForm( $payfastUrl, $data, null, $domainStatus, $params['systemurl'] );
     }
 
-	return( $output );
+    return( $output );
 }
 
 /**
@@ -238,17 +218,23 @@ function payfast_link( $params )
 function generateSignature( $params, $dataForSig )
 {
     $secureString = '';
-    foreach ($dataForSig as $k => $v) {
-        $secureString .= $k . '=' . urlencode(htmlspecialchars(trim($v))) . '&';
+    foreach ( $dataForSig as $k => $v )
+    {
+        $secureString .= $k . '=' . urlencode( htmlspecialchars( trim( $v ) ) ) . '&';
     }
 
-    if (empty($params['passphrase']) || $params['test_mode'] == 'on') {
+    if ( empty( $params['passphrase'] ) && $params['test_mode'] != 'on' )
+    {
         $secureString = substr($secureString, 0, -1);
-    } else {
+    }
+    elseif ( $params['test_mode'] == 'on' )
+    {
+        $secureString .= 'passphrase=payfast';
+    }
+    else
+    {
         $secureString .= 'passphrase=' . $params['passphrase'];
     }
-
-    //logActivity( print_r( $params, true ) );
 
     return  md5($secureString);
 }
@@ -271,23 +257,27 @@ function generateSignature( $params, $dataForSig )
  *
  *
  */
-function generateForm($payfastUrl,  $data, $button = null)
+function generateForm( $payfastUrl, $data, $button = null, $domainStatus, $systemUrl )
 {
-    $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
-    foreach ($data as $name => $value) {
-        $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
-    }
+    if ( $domainStatus != 'Active' )
+    {
+        $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
+        foreach ( $data as $name => $value )
+        {
+            $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
+        }
 
-    if( is_null( $button ) )
-    {
-        $output .= '<input type="submit" value="Pay Now" />';
+        if ( is_null( $button ) )
+        {
+            $output .= '<input type="image" align="centre" src="'. $systemUrl. '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now">';
+        }
+        else
+        {
+            $output .= $button;
+        }
+        $output .= '</form>';
+        return $output;
     }
-    else
-    {
-        $output .= $button;
-    }
-    $output .= '</form>';
-    return $output;
 }
 
 function getVer()
@@ -303,7 +293,6 @@ function getVer()
         return 'v5_include.php';
     }
 }
-
 
 // }}}
 ?>

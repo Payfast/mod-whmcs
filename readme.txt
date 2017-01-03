@@ -1,5 +1,5 @@
-PayFast WHMCS v4 Module v1.13 for WHMCS v4.5.2 & v5.0, v1.21 for WHMCS v6.0
-------------------------------------------------------------------------------
+PayFast WHMCS v4 Module v1.13 for WHMCS v4.5.2 & v5.0, v1.21 for WHMCS v6.0 v1.4.0 for WHMCS v6.* and v7.*
+----------------------------------------------------------------------------------------------------------
 Copyright (c) 2010-2016 PayFast (Pty) Ltd
 
 LICENSE:
@@ -19,7 +19,7 @@ General Public License.
 
 INTEGRATION:
 1. Unzip the module to a temporary location on your computer
-2. Copy the “modules” folder from the archive to your base “whmcs” folder (using FTP program or similar)
+2. Copy the “modules” and "includes" folders from the archive to your base “whmcs” folder (using FTP program or similar)
 - This should NOT overwrite any existing files or folders and merely supplement them with the PayFast files
 - This is however, dependent on the FTP program you use
 3. Login to the WHMCS Administrator console
@@ -30,9 +30,16 @@ INTEGRATION:
 8. Merchant Key = <Integration page>
 9. Check Test Mode
 10. Click “Save Changes”
-11. The module is now and ready to be tested with the Sandbox. To test with the sandbox, use the following login credentials when redirected to the PayFast site:
-- Username: sbtu01@payfast.co.za
-- Password: clientpass
+11. The module is now and ready to be tested with the Sandbox.
+
+How do I setup and manage recurring billing (WHMCS v6.* and v7.*)?
+If you already have subscriptions setup on your WHMCS site with PayFast module v1.3.1 or less, those subscriptions will continue to operate as before until cancelled
+1. Log in to your PayFast account and navigate to settings->integration
+2. Click on 'Enable' or 'Edit' next to Recurring Billing and enable Ad Hoc payments (once setup, WHMCS subscriptions will be found under 'Ad Hoc Agreements' on your PayFast account)
+3. Log into the admin dashboard of your WHMCS site and navigate to the PayFast configuration page as before
+4. Select 'Enable' or 'Force' recurring billing
+5. Once the subscription has been setup it can be managed on the client profile page, under the products/services tab on your WHMCS site admin dashboard
+6. Note, it is essential that you have your cron setup in order to charge the subscription.
 
 I’m ready to go live! What do I do?
 In order to make the module “LIVE”, follow the instructions below:
