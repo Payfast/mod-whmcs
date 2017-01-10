@@ -1,4 +1,4 @@
-PayFast WHMCS v4 Module v1.13 for WHMCS v4.5.2 & v5.0, v1.21 for WHMCS v6.0 v1.4.0 for WHMCS v6.* and v7.*
+PayFast WHMCS v4 Module v1.13 for WHMCS v4.5.2 & v5.0, v1.21 for WHMCS v6.0 v1.4.* for WHMCS v6.* and v7.*
 ----------------------------------------------------------------------------------------------------------
 Copyright (c) 2010-2017 PayFast (Pty) Ltd
 
@@ -33,7 +33,9 @@ INTEGRATION:
 11. The module is now and ready to be tested with the Sandbox.
 
 How do I setup and manage recurring billing (WHMCS v6.* and v7.*)?
-If you already have subscriptions setup on your WHMCS site with PayFast module v1.3.1 or less, those subscriptions will continue to operate as before until cancelled
+If you already have subscriptions setup on your WHMCS site with PayFast module v1.3.1 or less, those subscriptions will continue to be charged as before until cancelled.
+The 'Pay Now' button will not, however, be available on the invoices of subscriptions that are already setup due to the new subscription method. In order to migrate your clients to the new method the old subscription will need to be cancelled on PayFast, as well as WHMCS, and then the client will need to sign up again via your WHMCS site.
+
 1. Log in to your PayFast account and navigate to settings->integration
 2. Click on 'Enable' or 'Edit' next to Recurring Billing and enable Ad Hoc payments (once setup, WHMCS subscriptions will be found under 'Ad Hoc Agreements' on your PayFast account)
 3. Log into the admin dashboard of your WHMCS site and navigate to the PayFast configuration page as before
