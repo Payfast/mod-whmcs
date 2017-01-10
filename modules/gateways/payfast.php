@@ -100,7 +100,7 @@ function payfast_link( $params )
             $hosting = getHosting( $item['relid'] );
             if( !$forceOneTime )
             {
-                $subscriptionData['custom_int1'] = $hosting['orderid'];
+                $subscriptionData['custom_str2'] = $hosting['orderid'];
                 //    $subscriptionData['custom_str1'] = 'payfast-adhoc';
                 $subscriptionData['subscription_type'] = 2;
             }
