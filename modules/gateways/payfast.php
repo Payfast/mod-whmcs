@@ -83,7 +83,7 @@ function payfast_link( $params )
         ->where('id', $item['relid'])
         ->get();
 
-    $domainStatus = $tblhosting[0]->domainstatus;
+    $subscriptionId = $tblhosting[0]->subscriptionid;
 
     if( $subscriptionEnabled )
     {
@@ -183,13 +183,13 @@ function payfast_link( $params )
     if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) )
     {
         $button = '<input type="image" align="centre" src="'. $params['systemurl']. '/modules/gateways/payfast/images/light-small-subscribe.png" value="Subscribe Now">';
-        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $domainStatus );
+        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $subscriptionId );
         $output .= '&nbsp;';
     }
 
     if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) )
     {
-        $output .= generateForm( $payfastUrl, $data, null, $domainStatus, $params['systemurl'] );
+        $output .= generateForm( $payfastUrl, $data, null, $subscriptionId, $params['systemurl'] );
     }
 
     return( $output );
@@ -257,9 +257,9 @@ function generateSignature( $params, $dataForSig )
  *
  *
  */
-function generateForm( $payfastUrl, $data, $button = null, $domainStatus, $systemUrl )
+function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl )
 {
-    if ( $domainStatus != 'Active' )
+    if ( empty( $subscriptionId ) )
     {
         $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
         foreach ( $data as $name => $value )
