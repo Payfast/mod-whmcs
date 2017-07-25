@@ -153,6 +153,7 @@ function payfast_link( $params )
         'amount' => number_format( $params['amount'], 2, '.', '' ),
         'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
         //'item_description' => $description
+        'custom_str1' => $params['basecurrency']
     );
 
     if( !$forceOneTime )
