@@ -80,7 +80,7 @@ function payfast_link( $params )
 
         // Determine that there is only one hosting subscription
         // Select the items from the invoice
-        if( count( $invoiceHostingItems ) == 1 )
+        if( count( $invoiceHostingItems ) > 0 )
         {
             $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
             $item = $invoiceHostingItems[0];
@@ -93,11 +93,11 @@ function payfast_link( $params )
                 $subscriptionData['subscription_type'] = 2;
             }
         }
-        else
-        {
-            // If multiple hosting subscription, only show the invoice total
-            $forceOneTime = true;
-        }
+//        else
+//        {
+//            // If multiple hosting subscription, only show the invoice total
+//            $forceOneTime = true;
+//        }
     }
 
     $pfHost = ( ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
