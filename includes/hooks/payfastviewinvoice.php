@@ -9,20 +9,27 @@ add_hook( "ClientAreaPageViewInvoice", 1, "oneClickPayment" );
 
 function oneClickPayment($params)
 {
+    $gatewaymodule = 'payfast';
+    $GATEWAY = getGatewayVariables( $gatewaymodule );
+
+    $clientSubId = getSubscriptionId( $params['clientsdetails']['userid'] );
+
     $subscription = Illuminate\Database\Capsule\Manager::table('tblhosting')
         ->where('id', $params['invoiceitems'][0]['relid'])
         ->get();
 
     $subscriptionId = $subscription[0]->subscriptionid;
     $paymentMethod = $subscription[0]->paymentmethod;
+    $orderId = $subscription[0]->orderid;
 
     if ( substr( $params['systemurl'], -1 ) == '/' )
     {
         $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
     }
 
-    if ( $paymentMethod == 'payfast' && !empty( $subscriptionId ) && $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ )
+    if ( ( $GATEWAY['enable_single_token'] && !empty( $clientSubId['subscriptionid'] ) ) || ( $paymentMethod == 'payfast' && !empty( $subscriptionId ) && $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ ) )
     {
+        $subscriptionId = !empty( $clientSubId['subscriptionid'] ) ? $clientSubId['subscriptionid'] : $subscriptionId;
         ?>
         <div class="col-sm-12 text-center" style="margin-top: 20px"><form id="payfast_form" name="payfast_form" action="viewinvoice.php?id=<?php echo $params['invoiceid'] ?>" method="post" onsubmit="return loader();">
                 <input type="hidden" name="makeadhocpayment" value="makeadhocpayment">
@@ -56,8 +63,6 @@ function oneClickPayment($params)
 
     if ( !empty( $_POST['makeadhocpayment'] ) && $params['status'] != 'Paid' )
     {
-        $gatewaymodule = 'payfast';
-        $GATEWAY = getGatewayVariables( $gatewaymodule );
         $guid = $subscriptionId;
 
         if ( $GATEWAY['test_mode'] == 'on' )
@@ -77,8 +82,8 @@ function oneClickPayment($params)
         $payload = array();
 
         $payload['amount'] = $params['invoiceitems'][0]['rawamount'] * 100;
-        $payload['item_name'] = $params['invoiceitems'][0]['description'];
-        $payload['item_description'] = $params['invoiceid'];
+        $payload['item_name'] = $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'];
+        $payload['item_description'] = $params['companyname'] .' purchase, Invoice ID #'. $orderId;
         $guid = $subscriptionId;
 
         $hashArray['version'] = 'v1';

@@ -132,6 +132,33 @@ function getProduct($id )
 }
 
 /**
+ * getSubscriptionId
+ *
+ *
+ *
+ * @date 2017-08-28
+ * @version 1.0.0
+ * @access
+ *
+ * @author Brendon Posen <brendon.posen@payfast.co.za>
+ * @since 1.0.0
+ *
+ * @param $userid
+ * @return array
+ *
+ *
+ */
+function getSubscriptionId( $userId )
+{
+    $product = Illuminate\Database\Capsule\Manager::table('tblhosting')
+        ->where('userid', $userId )
+        ->where('subscriptionid', '<>', '')
+        ->latest('id')
+        ->first();
+    return (array)$product;
+}
+
+/**
  * setAdHocPayment
  *
  *

@@ -112,7 +112,7 @@ if( !$pfError )
 {
     pflog( "Check order hasn't been processed" );
 
-    $invId = is_numeric( $pfData['item_description'] ) ? $pfData['item_description'] : $pfData['m_payment_id'];
+    $invId = substr( $pfData['item_name'], strpos( $pfData['item_name'], '#' )  + 1 );
 
     // Checks invoice ID is a valid invoice number or ends processing
     $whInvoiceID = checkCbInvoiceID( $invId, $GATEWAY['name'] );
@@ -153,6 +153,11 @@ if( !$pfError )
 
         $amountGross = convertCurrency( $pfData['amount_gross'], $GATEWAY['convertto'], $currencies[0]->id );
         $amountFee = convertCurrency( $pfData['amount_fee'], $GATEWAY['convertto'], $currencies[0]->id );
+
+        pflog('amountGross: ' . $amountGross);
+        pflog('amountFee: ' . $amountFee);
+        pflog('convertto: ' . $GATEWAY['convertto']);
+        pflog('currency: ' . $currencies[0]->id);
     }
     else
     {
@@ -162,6 +167,8 @@ if( !$pfError )
 
     if( $pfData['payment_status'] == "COMPLETE" )
     {
+        $orderId = substr( $pfData['item_description'], strpos( $pfData['item_description'], '#' )  + 1 );
+        $whInvoiceID = substr( $pfData['item_name'], strpos( $pfData['item_name'], '#' )  + 1 );
         // Successful
         addInvoicePayment( $whInvoiceID, $pfData['pf_payment_id'],
             $amountGross, -1 * $amountFee, $gatewaymodule );
@@ -169,13 +176,13 @@ if( !$pfError )
 
         if ( !empty( $pfData['token'] ) )
         {
-            setSubscriptionId( $pfData['token'], $pfData['custom_str2'] );
-            setDomainStatus( $pfData['custom_str2'] );
+            setSubscriptionId( $pfData['token'], $orderId );
+            setDomainStatus( $orderId );
         }
     }
     elseif ( $pfData['payment_status'] == 'CANCELLED' )
     {
-        setTblHostingCancelStatus( $pfData['custom_str2'] );
+        setTblHostingCancelStatus( $orderId );
         setTblOrdersCancelStatus( $pfData['m_payment_id'] );
     }
     else

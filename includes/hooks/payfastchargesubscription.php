@@ -43,8 +43,8 @@ function payfastchargesubscription()
             $payload = array();
 
             $payload['amount'] = $subscription->amount * 100;
-            $payload['item_name'] = $subscription->domain;
-            $payload['item_description'] = $invoiceHostingItems[0]->invoiceid;
+            $payload['item_name'] = 'Invoice ID #' . $invoiceHostingItems[0]->invoiceid;
+            $payload['item_description'] = 'Order ID #' . $subscription->orderid;
             $guid = $subscription->subscriptionid;
 
             $hashArray['version'] = 'v1';
