@@ -12,7 +12,10 @@ function oneClickPayment($params)
     $gatewaymodule = 'payfast';
     $GATEWAY = getGatewayVariables( $gatewaymodule );
 
-    $clientSubId = getSubscriptionId( $params['clientsdetails']['userid'] );
+    if ( $params['status'] != 'Paid' )
+    {
+        $clientSubId = getSubscriptionId($params['clientsdetails']['userid']);
+    }
 
     $subscription = Illuminate\Database\Capsule\Manager::table('tblhosting')
         ->where('id', $params['invoiceitems'][0]['relid'])
