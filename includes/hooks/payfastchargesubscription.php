@@ -32,7 +32,8 @@ function payfastchargesubscription()
     foreach ( $subscriptions as $subscription )
     {
         if ( $subscription->paymentmethod == 'payfast' && $subscription->nextduedate == gmdate( 'Y-m-d' )
-            && !empty( $subscription->subscriptionid ) && $subscription->domainstatus == 'Active' )
+            && !empty( $subscription->subscriptionid ) && $subscription->domainstatus == 'Active'
+            && $subscription->amount > 0 )
         {
             $invoiceHostingItems = Illuminate\Database\Capsule\Manager::table('tblinvoiceitems')
                 ->where('relid', $subscription->id)
