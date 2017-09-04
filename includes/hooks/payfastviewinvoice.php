@@ -68,6 +68,15 @@ function oneClickPayment($params)
     {
         $guid = $subscriptionId;
 
+        // Get total
+        $total = 0;
+        $count = count( $params['invoiceitems'] );
+
+        for ($i = 0; $i <= $count; $i++)
+        {
+            $total += $params['invoiceitems'][$i]['rawamount'];
+        }
+
         if ( $GATEWAY['test_mode'] == 'on' )
         {
             $merchantId = '10004002';
@@ -84,9 +93,9 @@ function oneClickPayment($params)
         $hashArray = array();
         $payload = array();
 
-        $payload['amount'] = $params['invoiceitems'][0]['rawamount'] * 100;
+        $payload['amount'] = $total * 100;
         $payload['item_name'] = $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'];
-        $payload['item_description'] = $params['companyname'] .' purchase, Invoice ID #'. $orderId;
+        $payload['item_description'] = $params['companyname'] .' purchase, Order ID #'. $orderId;
         $guid = $subscriptionId;
 
         $hashArray['version'] = 'v1';
