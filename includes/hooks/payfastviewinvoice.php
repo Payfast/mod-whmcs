@@ -14,7 +14,11 @@ function oneClickPayment($params)
 
     if ( $params['status'] != 'Paid' )
     {
-        $clientSubId = getSubscriptionId($params['clientsdetails']['userid']);
+        $clientSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
+            ->where('userid', $params['clientsdetails']['userid'])
+            ->where('subscriptionid', '<>', '')
+            ->latest('id')
+            ->first();
     }
 
     $subscription = Illuminate\Database\Capsule\Manager::table('tblhosting')
@@ -30,9 +34,9 @@ function oneClickPayment($params)
         $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
     }
 
-    if ( ( $GATEWAY['enable_single_token'] && !empty( $clientSubId['subscriptionid'] ) ) || ( $paymentMethod == 'payfast' && !empty( $subscriptionId ) && $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ ) )
+    if ( ( $GATEWAY['enable_single_token'] && !empty( $clientSubId->subscriptionid ) ) || ( $paymentMethod == 'payfast' && !empty( $subscriptionId ) && $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ ) )
     {
-        $subscriptionId = !empty( $clientSubId['subscriptionid'] ) ? $clientSubId['subscriptionid'] : $subscriptionId;
+        $subscriptionId = !empty( $clientSubId->subscriptionid ) ? $clientSubId->subscriptionid : $subscriptionId;
         ?>
         <div class="col-sm-12 text-center" style="margin-top: 20px"><form id="payfast_form" name="payfast_form" action="viewinvoice.php?id=<?php echo $params['invoiceid'] ?>" method="post" onsubmit="return loader();">
                 <input type="hidden" name="makeadhocpayment" value="makeadhocpayment">
