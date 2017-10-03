@@ -76,9 +76,17 @@ function oneClickPayment($params)
         $total = 0;
         $count = count( $params['invoiceitems'] );
 
+        $findCredit = serialize( $params['credit'] );
+        $credit = str_replace( 'R', '' , unserialize($findCredit) );
+
         for ($i = 0; $i <= $count; $i++)
         {
             $total += $params['invoiceitems'][$i]['rawamount'];
+        }
+
+        if ( $credit != '0.00' )
+        {
+            $total = $total - (float)$credit;
         }
 
         if ( $GATEWAY['test_mode'] == 'on' )
