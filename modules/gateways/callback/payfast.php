@@ -178,6 +178,7 @@ if( !$pfError )
         {
             setSubscriptionId( $pfData['token'], $orderId );
             setDomainStatus( $orderId );
+            LogActivity( 'PayFast subscription token ' . $pfData['token'] . ' used to pay for order ' . $orderId );
         }
     }
     elseif ( $pfData['payment_status'] == 'CANCELLED' )

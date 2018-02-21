@@ -181,7 +181,7 @@ function payfast_link( $params )
 
     if ( $enableSingleToken && !empty( $clientSubId['subscriptionid'] ) )
     {
-        $output .= generateForm( $payfastUrl, $data, null, $subscriptionId, $params['systemurl'], $clientSubId['subscriptionid'] );
+        $output .= generateForm( $payfastUrl, $data, null, $subscriptionId, $params['systemurl'], $clientSubId['subscriptionid'], $hosting['userid'] );
     }
 
     return( $output );
@@ -249,7 +249,7 @@ function generateSignature( $params, $dataForSig )
  *
  *
  */
-function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl, $clientSubId )
+function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl, $clientSubId, $userId = null )
 {
     if ( empty ( $subscriptionId ) && is_null( $clientSubId ) )
     {
@@ -274,6 +274,11 @@ function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = nul
 
     if ( !empty( $clientSubId ) )
     {
+        if ( $userId != null )
+        {
+            LogActivity( 'PayFast single subscription token ' . $clientSubId . ' set to user ' . $userId );
+        }
+        
         $output = '<form id="payfast_form" name="payfast_form" action="'.$systemUrl.'/modules/gateways/payfast/adhoc.php" method="post" >';
         foreach ( $data as $name => $value )
         {
