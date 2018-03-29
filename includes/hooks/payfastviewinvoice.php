@@ -25,7 +25,7 @@ function oneClickPayment($params)
         ->where('id', $params['invoiceitems'][0]['relid'])
         ->get();
 
-    $subscriptionId = $subscription[0]->subscriptionid;
+//    $subscriptionId = $subscription[0]->subscriptionid;
     $paymentMethod = $subscription[0]->paymentmethod;
     $orderId = $subscription[0]->orderid;
 
@@ -34,9 +34,9 @@ function oneClickPayment($params)
         $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
     }
 
-    if ( ( $GATEWAY['enable_single_token'] && !empty( $clientSubId->subscriptionid ) ) || ( $paymentMethod == 'payfast' && !empty( $subscriptionId ) && $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ ) )
+    if ( /*( $GATEWAY['enable_single_token'] &&*/ !empty( $clientSubId->subscriptionid ) && $paymentMethod == 'payfast' && /*!empty( $subscriptionId ) &&*/ $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ )
     {
-        $subscriptionId = !empty( $clientSubId->subscriptionid ) ? $clientSubId->subscriptionid : $subscriptionId;
+        $subscriptionId = $clientSubId->subscriptionid;
         ?>
         <div class="col-sm-12 text-center" style="margin-top: 20px"><form id="payfast_form" name="payfast_form" action="viewinvoice.php?id=<?php echo $params['invoiceid'] ?>" method="post" onsubmit="return loader();">
                 <input type="hidden" name="makeadhocpayment" value="makeadhocpayment">

@@ -31,7 +31,7 @@ function payfast_config()
             'Description' => '*** DO NOT SET THIS UNLESS YOU HAVE SET IT ON THE <a href="http://www.payfast.co.za/acc/integration">Integration</a> PAGE ON PayFast ***', ),
         'enable_recurring' => array( 'FriendlyName' => 'Enable Recurring Billing', 'Type' => 'yesno', 'Description' => '*** You need to enable Ad Hoc Payments on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast ***'),
         'force_recurring' => array( 'FriendlyName' => 'Force Recurring Billing', 'Type' => 'yesno', 'Description' => 'Hide the one time payment when a subscription can be created'),
-        'enable_single_token' => array( 'FriendlyName' => 'Enable Single Subscription ID ', 'Type' => 'yesno', 'Description' => 'Set a single subscription ID for each client so they will not have to be redirected to PayFast for any payment on any invoice subsequent to the initial payment. Recurring billing must be enabled for this feature.'),
+    //    'enable_single_token' => array( 'FriendlyName' => 'Enable Single Subscription ID ', 'Type' => 'yesno', 'Description' => 'Set a single subscription ID for each client so they will not have to be redirected to PayFast for any payment on any invoice subsequent to the initial payment. Recurring billing must be enabled for this feature.'),
         'test_mode' => array( 'FriendlyName' => 'Test Mode', 'Type' => 'yesno',
             'Description' => 'Check this to put the interface in test mode', ),
         'debug' => array( 'FriendlyName' => 'Debugging', 'Type' => 'yesno',
@@ -59,7 +59,7 @@ function payfast_link( $params )
     require_once( 'payfast/' . getVer() );
     $subscriptionEnabled = $params['enable_recurring'] == 'on' ? true : false;
     $forceSubscription = $params['force_recurring'] == 'on' ? true : false;
-    $enableSingleToken = $params['enable_single_token'] == 'on' ? true : false;
+    $enableSingleToken = $subscriptionEnabled ==  true || $forceSubscription == true ? true : false;
     $output = '';
     $subscriptionData = array();
     $forceOneTime = true;
@@ -76,37 +76,45 @@ function payfast_link( $params )
 
     $subscriptionId = $tblhosting[0]->subscriptionid;
 
-    if( $subscriptionEnabled )
+    if ( $enableSingleToken )
     {
         $forceOneTime = false;
-        $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
+        $clientSubId = getSubscriptionId($hosting['userid']);
+        $subscriptionData['custom_str2'] = $hosting['orderid'];
+        $subscriptionData['subscription_type'] = 2;
+    }
 
-        // Determine that there is only one hosting subscription
-        // Select the items from the invoice
-        if( count( $invoiceHostingItems ) > 0 )
-        {
-            $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
-            $item = $invoiceHostingItems[0];
-
-            $hosting = getHosting( $item['relid'] );
-
-            if ( $enableSingleToken )
-            {
-                $clientSubId = getSubscriptionId($hosting['userid']);
-            }
-
-            if( !$forceOneTime )
-            {
-                $subscriptionData['custom_str2'] = $hosting['orderid'];
-                $subscriptionData['subscription_type'] = 2;
-            }
-        }
+//    if( $subscriptionEnabled )
+//    {
+//        $forceOneTime = false;
+//        $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
+//
+//        // Determine that there is only one hosting subscription
+//        // Select the items from the invoice
+//        if( count( $invoiceHostingItems ) > 0 )
+//        {
+//            $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
+//            $item = $invoiceHostingItems[0];
+//
+//            $hosting = getHosting( $item['relid'] );
+//
+//            if ( $enableSingleToken )
+//            {
+//                $clientSubId = getSubscriptionId($hosting['userid']);
+//            }
+//
+//            if( !$forceOneTime )
+//            {
+//                $subscriptionData['custom_str2'] = $hosting['orderid'];
+//                $subscriptionData['subscription_type'] = 2;
+//            }
+//        }
 //        else
 //        {
 //            // If multiple hosting subscription, only show the invoice total
 //            $forceOneTime = true;
 //        }
-    }
+//    }
 
     $pfHost = ( ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
     $payfastUrl = 'https://'. $pfHost .'/eng/process';
@@ -249,9 +257,9 @@ function generateSignature( $params, $dataForSig )
  *
  *
  */
-function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl, $clientSubId, $userId = null )
+function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl = null, $clientSubId, $userId = null )
 {
-    if ( empty ( $subscriptionId ) && is_null( $clientSubId ) )
+    if ( /*empty ( $subscriptionId ) &&*/ is_null( $clientSubId ) )
     {
         $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
         foreach ( $data as $name => $value )
@@ -288,7 +296,7 @@ function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = nul
 
         if ( is_null( $button ) )
         {
-            //   $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow">';
+            $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow">';
         }
         else
         {
