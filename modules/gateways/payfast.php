@@ -178,7 +178,7 @@ function payfast_link( $params )
     if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) && !isset( $clientSubId['subscriptionid'] ) )
     {
         $button = '<input type="image" align="centre" src="'. $params['systemurl']. '/modules/gateways/payfast/images/light-small-subscribe.png" value="Subscribe Now">';
-        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $subscriptionId );
+        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $subscriptionId, $params['systemurl'], null, null );
         $output .= '&nbsp;';
     }
 
