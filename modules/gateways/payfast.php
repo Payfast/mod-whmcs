@@ -151,9 +151,9 @@ function payfast_link( $params )
         'notify_url' => $notifyUrl,
 
         // Buyer Details
-        'name_first' => urlencode( $params['clientdetails']['firstname'] ),
-        'name_last' => urlencode( $params['clientdetails']['lastname'] ),
-        'email_address' => trim($params['clientdetails']['email']),
+        'name_first' => trim( $params['clientdetails']['firstname'] ),
+        'name_last' => trim( $params['clientdetails']['lastname'] ),
+        'email_address' => trim( $params['clientdetails']['email'] ),
 
         // Item details
         'm_payment_id' => $params['invoiceid'],
