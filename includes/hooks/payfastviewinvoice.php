@@ -146,7 +146,7 @@ function oneClickPayment($params)
         }
         else
         {
-            ?><script type="text/javascript"> alert('The system encountered an error, DO NOT attempt payment again. Please contact the merchant to confirm if payment was successful')</script><?php
+            ?><script type="text/javascript"> alert('There was an error with making payment. Please do not try again. Contact us to confirm if the payment was successful.')</script><?php
             logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . ' failed with message: ' . $pfResponse->data->message );
         }
     }
