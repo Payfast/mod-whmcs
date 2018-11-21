@@ -37,35 +37,40 @@ function oneClickPayment($params)
     if ( /*( $GATEWAY['enable_single_token'] &&*/ !empty( $clientSubId->subscriptionid ) && $paymentMethod == 'payfast' && /*!empty( $subscriptionId ) &&*/ $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ )
     {
         $subscriptionId = $clientSubId->subscriptionid;
-        ?>
-        <div class="col-sm-12 text-center" style="margin-top: 20px"><form id="payfast_form" name="payfast_form" action="viewinvoice.php?id=<?php echo $params['invoiceid'] ?>" method="post" onsubmit="return loader();">
-                <input type="hidden" name="makeadhocpayment" value="makeadhocpayment">
-                <input type="image" src="<?php echo $params['systemurl'] ?>/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow" />
-            </form></div>
 
-        <script type="text/javascript">
+        $invData = getInvoiceStatus( $params['invoiceid'] );
+        $invStatus = $invData[0]['status'];
 
-            function loader(){
-                var loader = document.getElementById("loader"),
+        if ( $invStatus != 'Paid' )
+        {
+            ?>
+            <div class="col-sm-12 text-center" style="margin-top: 20px"><form id="payfast_form" name="payfast_form" action="viewinvoice.php?id=<?php echo $params['invoiceid'] ?>" method="post" onsubmit="return loader();">
+                    <input type="hidden" name="makeadhocpayment" value="makeadhocpayment">
+                    <input type="image" src="<?php echo $params['systemurl'] ?>/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow" />
+                </form></div>
 
-                    show = function(){
-                        loader.style.display = "block";
-                        setTimeout(hide, 8000);
-                        document.getElementById("paynow").disabled = true;
-                    },
+            <script type="text/javascript">
 
-                    hide = function(){
-                        loader.style.display = "none";
-                    };
+                function loader(){
+                    var loader = document.getElementById("loader"),
 
-                show();
-            };
+                        show = function(){
+                            loader.style.display = "block";
+                            document.getElementById("paynow").disabled = true;
+                        };
 
-        </script>
+                    show();
+                };
 
-        <div id="loader" class="col-sm-12 text-center" style="display:none"><img id = "myImage" src = "<?php echo $params['systemurl']  ?>/modules/gateways/payfast/images/loading.gif"></div>
+            </script>
 
-        <?php
+            <div id="loader" class="col-sm-12 text-center" style="display:none"><img id = "myImage" src = "<?php echo $params['systemurl']  ?>/modules/gateways/payfast/images/loading.gif">
+                <br><br>
+                <p>Processing Payment - Please wait</p>
+            </div>
+
+            <?php
+        }
     }
 
     if ( !empty( $_POST['makeadhocpayment'] ) && $params['status'] != 'Paid' )
@@ -140,13 +145,31 @@ function oneClickPayment($params)
 
         if ( $pfResponse->data->message == 'Success' )
         {
-            //    sleep( 5 );
             logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . ' successfully completed' );
-            header("Location:" . $params['systemurl'] . '/viewinvoice.php?id=' . $params['invoiceid']);
+
+            $invData = getInvoiceStatus( $params['invoiceid'] );
+            $invStatus = $invData[0]['status'];
+
+            if ( $invStatus == 'Paid' )
+            {
+                header("Location:" . $params['systemurl'] . '/viewinvoice.php?id=' . $params['invoiceid']);
+            }
+
+            if ( $invStatus != 'Paid' )
+            {
+                ?><script type="text/javascript"> alert('The transaction has been successful. Currently your payment is being verified. Please contact us to confirm your payment.')</script><?php
+                logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . 'ITN failed to update the invoice to PAID in a reasonable time' );
+                $invFresh = $params['systemurl'].'/viewinvoice.php?id='.$params['invoiceid'];
+                header("refresh:5;url=$invFresh");
+            }
+            else
+            {
+                header("Location:" . $params['systemurl'] . '/viewinvoice.php?id=' . $params['invoiceid']);
+            }
         }
         else
         {
-            ?><script type="text/javascript"> alert('There was an error with making payment. Please do not try again. Contact us to confirm if the payment was successful.')</script><?php
+            ?><script type="text/javascript"> alert('There was an error with making payment. Please try again or contact us for help.')</script><?php
             logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . ' failed with message: ' . $pfResponse->data->message );
         }
     }
