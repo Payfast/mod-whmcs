@@ -159,7 +159,7 @@ function oneClickPayment($params)
                 ?>
                 <script type="text/javascript"> alert('The transaction has been successful. Currently your payment is being verified. Please contact us to confirm your payment.')</script><?php
                 logActivity('PayFast Ad Hoc payment with subscriptionid: ' . $guid . 'ITN failed to update the invoice to PAID in a reasonable time');
-                $invFresh = $params[ 'systemurl' ] . '/viewinvoice.php?id=' . $params[ 'invoiceid' ];
+                $invFresh = $params['systemurl'] . '/viewinvoice.php?id=' . $params['invoiceid'];
                 header("refresh:5;url=$invFresh");
             }
         }
