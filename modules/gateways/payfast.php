@@ -233,7 +233,7 @@ function generateSignature( $params, $dataForSig )
     }
     else
     {
-        $secureString .= 'passphrase=' . $params['passphrase'];
+        $secureString .= 'passphrase=' . urlencode( trim( $params['passphrase'] ) );
     }
 
     return  md5($secureString);
