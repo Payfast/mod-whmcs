@@ -19,6 +19,7 @@ define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
 define( 'PF_MODULE_VER', '1.4.12' );
 
+
 // Features
 // - PHP
 $pfFeatures = 'PHP '. phpversion() .';';
