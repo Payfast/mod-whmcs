@@ -25,7 +25,6 @@ function oneClickPayment($params)
         ->where('id', $params['invoiceitems'][0]['relid'])
         ->get();
 
-//    $subscriptionId = $subscription[0]->subscriptionid;
     $paymentMethod = $subscription[0]->paymentmethod;
     $orderId = $subscription[0]->orderid;
 
@@ -34,7 +33,7 @@ function oneClickPayment($params)
         $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
     }
 
-    if ( /*( $GATEWAY['enable_single_token'] &&*/ !empty( $clientSubId->subscriptionid ) && $paymentMethod == 'payfast' && /*!empty( $subscriptionId ) &&*/ $params['status'] != 'Paid' /*&& empty( $_POST['makeadhocpayment'] )*/ )
+    if ( !empty( $clientSubId->subscriptionid ) && $paymentMethod == 'payfast' && $params['status'] != 'Paid' )
     {
         $subscriptionId = $clientSubId->subscriptionid;
 
@@ -130,7 +129,7 @@ function oneClickPayment($params)
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
         curl_setopt($ch, CURLOPT_VERBOSE, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'version: v1',
@@ -143,7 +142,7 @@ function oneClickPayment($params)
 
         $pfResponse = json_decode( $response );
 
-        if ( $pfResponse->data->message == 'Success' )
+        if ( $pfResponse->data->response == true )
         {
             logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . ' successfully completed' );
 

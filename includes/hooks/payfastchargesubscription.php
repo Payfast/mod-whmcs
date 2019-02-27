@@ -56,7 +56,7 @@ function payfastchargesubscription()
             ksort( $orderedPrehash );
             $signature = md5( http_build_query( $orderedPrehash ) );
             $domain = "https://api.payfast.co.za";
-            // configure curl
+            // Configure cURL
             $url = $domain . '/subscriptions/' . $guid . $uri;
             $ch = curl_init($url);
             $useragent = 'WHMCS';
@@ -65,7 +65,7 @@ function payfastchargesubscription()
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-            curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
             curl_setopt($ch, CURLOPT_VERBOSE, 1);
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 'version: v1',
@@ -78,7 +78,7 @@ function payfastchargesubscription()
 
             $pfResponse = json_decode( $response );
 
-            if ( $pfResponse->data->message == 'Success' )
+            if ( $pfResponse->data->response == true )
             {
                 logActivity( 'PayFast subscription payment with subscriptionid: ' . $guid . ' successfully completed' );
             }

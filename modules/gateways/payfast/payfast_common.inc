@@ -17,7 +17,7 @@ global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
-define( 'PF_MODULE_VER', '1.4.12' );
+define( 'PF_MODULE_VER', '1.4.13' );
 
 
 // Features
@@ -34,7 +34,7 @@ if( in_array( 'curl', get_loaded_extensions() ) )
 else
     $pfFeatures .= ' nocurl;';
 
-// Create user agrent
+// Create user agent
 define( 'PF_USER_AGENT', PF_SOFTWARE_NAME .'/'. PF_SOFTWARE_VER .' ('. trim( $pfFeatures ) .') '. PF_MODULE_NAME .'/'. PF_MODULE_VER );
 
 // General Defines
@@ -67,7 +67,6 @@ define( 'PF_MSG_PENDING',
     'The payment is pending. Please note, you will receive another Instant'.
     ' Transaction Notification when the payment status changes to'.
     ' "Completed", or "Failed"' );
-
 
 /**
  * pflog
@@ -164,7 +163,6 @@ function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase
         $signature = md5( $pfParamString );
     }
 
-
     $result = ( $pfData['signature'] == $signature );
 
     pflog( 'Signature = '. ( $result ? 'valid' : 'invalid' ) );
@@ -195,7 +193,7 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfPro
         // Create default cURL object
         $ch = curl_init();
 
-        // Set cURL options - Use curl_setopt for freater PHP compatibility
+        // Set cURL options - Use curl_setopt for greater PHP compatibility
         // Base settings
         curl_setopt( $ch, CURLOPT_USERAGENT, PF_USER_AGENT );  // Set user agent
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );      // Return output as string rather than outputting it
@@ -211,7 +209,7 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfPro
         if( !empty( $pfProxy ) )
             curl_setopt( $ch, CURLOPT_PROXY, $proxy );
 
-        // Execute CURL
+        // Execute cURL
         $response = curl_exec( $ch );
         curl_close( $ch );
     }
