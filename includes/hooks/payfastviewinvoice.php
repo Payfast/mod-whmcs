@@ -76,22 +76,9 @@ function oneClickPayment($params)
     {
         $guid = $subscriptionId;
 
-        // Get total
-        $total = 0;
-        $count = count( $params['invoiceitems'] );
-
-        $findCredit = serialize( $params['credit'] );
-        $credit = str_replace( 'R', '' , unserialize($findCredit) );
-
-        for ($i = 0; $i <= $count; $i++)
-        {
-            $total += $params['invoiceitems'][$i]['rawamount'];
-        }
-
-        if ( $credit != '0.00' )
-        {
-            $total = $total - (float)$credit;
-        }
+        //Gets balance of invoice and strips currency.
+        preg_match('/\d+.\d/', $params['balance'], $balance_array);
+        $balance = $balance_array[0];
 
         if ( $GATEWAY['test_mode'] == 'on' )
         {
@@ -109,7 +96,7 @@ function oneClickPayment($params)
         $hashArray = array();
         $payload = array();
 
-        $payload['amount'] = $total * 100;
+        $payload['amount'] = $balance * 100;
         $payload['item_name'] = $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'];
         $payload['item_description'] = $params['companyname'] .' purchase, Order ID #'. $orderId;
         $guid = $subscriptionId;
