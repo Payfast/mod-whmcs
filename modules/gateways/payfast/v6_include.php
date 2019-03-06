@@ -6,7 +6,7 @@
  */
 
 /**
- * getInvoiceItems
+ * getInvoiceHostingItems
  *
  *
  *
@@ -222,26 +222,29 @@ function setDomainStatus( $orderId )
  *
  *
  *
- * @date 2016-11-18
- * @version 1.0.0
+ * @date 2019-02-27
+ * @version 2.0.0
  * @access
  *
  * @author Brendon Posen<brendon.posen@payfast.co.za>
  * @since 1.0.0
  *
- *  @param $subId
- * @param $orderId
+ * @author Cate Faull <cate.faull@payfast.co.za>
+ * @since 2.0.0
+ *
+ * @param $clientSubId
+ * @param $clientEmail
  * @return boolean
  *
  *
  */
-function setSubscriptionId( $subId, $orderId )
+function setSubscriptionId( $clientSubId, $clientEmail )
 {
-    Illuminate\Database\Capsule\Manager::table('tblhosting')
-        ->where('orderid', $orderId)
+    Illuminate\Database\Capsule\Manager::table('tblclients')
+        ->where('email', $clientEmail)
         ->update(
             [
-                'subscriptionid' => $subId,
+                'gatewayid' => $clientSubId,
             ]
         );
 

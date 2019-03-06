@@ -11,7 +11,6 @@ function payfastchargesubscription()
 {
     $gatewaymodule = 'payfast';
     $GATEWAY = getGatewayVariables( $gatewaymodule );
-    $domain = "https://api.payfast.co.za";
 
     if ( $GATEWAY['test_mode'] == 'on' )
     {
@@ -31,8 +30,25 @@ function payfastchargesubscription()
 
     foreach ( $subscriptions as $subscription )
     {
+        $userId = $subscription->userid;
+        $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
+            ->where('id', $userId )
+            ->get();
+        $subsToken = $clientRec[0]->gatewayid;
+
+        $oldSubId = $subscription->subscriptionid;
+
+        if ( !empty( $subsToken ) )
+        {
+            $clientSubId = $subsToken;
+        }
+        else
+        {
+            $clientSubId = $oldSubId;
+        }
+
         if ( $subscription->paymentmethod == 'payfast' && $subscription->nextduedate == gmdate( 'Y-m-d' )
-            && !empty( $subscription->subscriptionid ) && $subscription->domainstatus == 'Active'
+            && !empty( $clientSubId ) && $subscription->domainstatus == 'Active'
             && $subscription->amount > 0 )
         {
             $invoiceHostingItems = Illuminate\Database\Capsule\Manager::table('tblinvoiceitems')
@@ -46,7 +62,7 @@ function payfastchargesubscription()
             $payload['amount'] = $subscription->amount * 100;
             $payload['item_name'] = 'Invoice ID #' . $invoiceHostingItems[0]->invoiceid;
             $payload['item_description'] = 'Order ID #' . $subscription->orderid;
-            $guid = $subscription->subscriptionid;
+            $guid = $clientSubId;
 
             $hashArray['version'] = 'v1';
             $hashArray['merchant-id'] = $merchantId;

@@ -10,22 +10,40 @@ add_hook( "ClientAreaPageViewInvoice", 1, "oneClickPayment" );
 function oneClickPayment($params)
 {
     $gatewaymodule = 'payfast';
+    $clientSubId = '';
     $GATEWAY = getGatewayVariables( $gatewaymodule );
 
-    if ( $params['status'] != 'Paid' )
+    $oldSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
+        ->where('userid', $params['clientsdetails']['userid'])
+        ->where('subscriptionid', '<>', '')
+        ->latest('id')
+        ->first();
+
+    $userId = $params['clientsdetails']['userid'];
+    $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
+        ->where('id', $userId )
+        ->get();
+    $subsToken = $clientRec[0]->gatewayid;
+
+    $hasToken = ( $oldSubId || $subsToken ) ? 'true' : 'false';
+
+    if ( $params['status'] != 'Paid' && $hasToken )
     {
-        $clientSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
-            ->where('userid', $params['clientsdetails']['userid'])
-            ->where('subscriptionid', '<>', '')
-            ->latest('id')
-            ->first();
+        if ( !empty( $subsToken ) )
+        {
+            $clientSubId = $subsToken;
+        }
+        else
+        {
+            $clientSubId = $oldSubId;
+        }
     }
 
     $subscription = Illuminate\Database\Capsule\Manager::table('tblhosting')
         ->where('id', $params['invoiceitems'][0]['relid'])
         ->get();
 
-    $paymentMethod = $subscription[0]->paymentmethod;
+    $paymentMethod = !empty( $params['paymentmethod'] ) ? strtolower( $params['paymentmethod'] ) : $subscription[0]->paymentmethod;
     $orderId = $subscription[0]->orderid;
 
     if ( substr( $params['systemurl'], -1 ) == '/' )
@@ -33,10 +51,8 @@ function oneClickPayment($params)
         $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
     }
 
-    if ( !empty( $clientSubId->subscriptionid ) && $paymentMethod == 'payfast' && $params['status'] != 'Paid' )
+    if ( !empty( $clientSubId ) && $paymentMethod == 'payfast' && $params['status'] != 'Paid' )
     {
-        $subscriptionId = $clientSubId->subscriptionid;
-
         $invData = getInvoiceStatus( $params['invoiceid'] );
         $invStatus = $invData[0]['status'];
 
@@ -74,7 +90,7 @@ function oneClickPayment($params)
 
     if ( !empty( $_POST['makeadhocpayment'] ) && $params['status'] != 'Paid' )
     {
-        $guid = $subscriptionId;
+        $guid = $clientSubId;
 
         //Gets balance of invoice and strips currency.
         preg_match('/\d+.\d/', $params['balance'], $balance_array);
@@ -99,7 +115,6 @@ function oneClickPayment($params)
         $payload['amount'] = $balance * 100;
         $payload['item_name'] = $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'];
         $payload['item_description'] = $params['companyname'] .' purchase, Order ID #'. $orderId;
-        $guid = $subscriptionId;
 
         $hashArray['version'] = 'v1';
         $hashArray['merchant-id'] = $merchantId;

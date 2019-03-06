@@ -61,6 +61,7 @@ function payfast_link( $params )
     $forceSubscription = $params['force_recurring'] == 'on' ? true : false;
     $enableSingleToken = $subscriptionEnabled ==  true || $forceSubscription == true ? true : false;
     $output = '';
+    $clientSubId = '';
     $subscriptionData = array();
     $forceOneTime = true;
 
@@ -74,47 +75,32 @@ function payfast_link( $params )
         ->where('id', $item['relid'])
         ->get();
 
-    $subscriptionId = $tblhosting[0]->subscriptionid;
+    $oldSubId = $tblhosting[0]->subscriptionid;
+
+    $userId = $hosting['userid'];
+    $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
+        ->where('id', $userId )
+        ->get();
+    $subsToken = $clientRec[0]->gatewayid;
+
+    if ( $oldSubId || $subsToken )
+    {
+        if ( !empty( $subsToken ) )
+        {
+            $clientSubId = $subsToken;
+        }
+        else
+        {
+            $clientSubId = $oldSubId;
+        }
+    }
 
     if ( $enableSingleToken )
     {
         $forceOneTime = false;
-        $clientSubId = getSubscriptionId($hosting['userid']);
         $subscriptionData['custom_str2'] = $hosting['orderid'];
         $subscriptionData['subscription_type'] = 2;
     }
-
-//    if( $subscriptionEnabled )
-//    {
-//        $forceOneTime = false;
-//        $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
-//
-//        // Determine that there is only one hosting subscription
-//        // Select the items from the invoice
-//        if( count( $invoiceHostingItems ) > 0 )
-//        {
-//            $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
-//            $item = $invoiceHostingItems[0];
-//
-//            $hosting = getHosting( $item['relid'] );
-//
-//            if ( $enableSingleToken )
-//            {
-//                $clientSubId = getSubscriptionId($hosting['userid']);
-//            }
-//
-//            if( !$forceOneTime )
-//            {
-//                $subscriptionData['custom_str2'] = $hosting['orderid'];
-//                $subscriptionData['subscription_type'] = 2;
-//            }
-//        }
-//        else
-//        {
-//            // If multiple hosting subscription, only show the invoice total
-//            $forceOneTime = true;
-//        }
-//    }
 
     $pfHost = ( ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
     $payfastUrl = 'https://'. $pfHost .'/eng/process';
@@ -175,21 +161,21 @@ function payfast_link( $params )
     $data['signature'] = generateSignature($params, $data);
 
     $data['user_agent'] = 'WHMCS 6.x';
-    if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) && !isset( $clientSubId['subscriptionid'] ) )
+    if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) && !isset( $clientSubId ) )
     {
         $button = '<input type="image" align="centre" src="'. $params['systemurl']. '/modules/gateways/payfast/images/light-small-subscribe.png" value="Subscribe Now">';
-        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $subscriptionId, $params['systemurl'], null, null );
+        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $clientSubId, $params['systemurl'], $hosting['userid'] );
         $output .= '&nbsp;';
     }
 
     if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) && ( !isset( $clientSubId['subscriptionid'] ) || !$enableSingleToken ) )
     {
-        $output .= generateForm( $payfastUrl, $data, null, $subscriptionId, $params['systemurl'], $clientSubId['subscriptionid'] );
+        $output .= generateForm( $payfastUrl, $data, null, $clientSubId, $params['systemurl'], $hosting['userid']);
     }
 
     if ( $enableSingleToken && !empty( $clientSubId['subscriptionid'] ) )
     {
-        $output .= generateForm( $payfastUrl, $data, null, $subscriptionId, $params['systemurl'], $clientSubId['subscriptionid'], $hosting['userid'] );
+        $output .= generateForm( $payfastUrl, $data, null, $clientSubId, $params['systemurl'], $hosting['userid'] );
     }
 
     return( $output );
@@ -257,9 +243,9 @@ function generateSignature( $params, $dataForSig )
  *
  *
  */
-function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = null, $systemUrl = null, $clientSubId, $userId = null )
+function generateForm( $payfastUrl, $data, $button = null, $clientSubId = null, $systemUrl = null, $userId = null )
 {
-    if ( /*empty ( $subscriptionId ) &&*/ is_null( $clientSubId ) )
+    if ( is_null( $clientSubId ) )
     {
         $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
         foreach ( $data as $name => $value )
@@ -286,7 +272,7 @@ function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = nul
         {
             LogActivity( 'PayFast single subscription token ' . $clientSubId . ' set to user ' . $userId );
         }
-        
+
         $output = '<form id="payfast_form" name="payfast_form" action="'.$systemUrl.'/modules/gateways/payfast/adhoc.php" method="post" >';
         foreach ( $data as $name => $value )
         {
@@ -305,7 +291,7 @@ function generateForm( $payfastUrl, $data, $button = null, $subscriptionId = nul
 
         $output .= '</form>';
 
-        $output .= 'Processing Payment';
+//        $output .= 'Processing Payment';
         return $output;
     }
 }

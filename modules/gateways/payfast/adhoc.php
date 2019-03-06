@@ -9,7 +9,6 @@
 if ( !empty( $_POST['subscriptionid'] )  )
 {
     include( "../../../init.php" );
-//include( "../../../dbconnect.php" );
     include( "../../../includes/functions.php" );
     include( "../../../includes/gatewayfunctions.php" );
     include( "../../../includes/invoicefunctions.php" );
@@ -46,7 +45,7 @@ if ( !empty( $_POST['subscriptionid'] )  )
     $orderedPrehash = array_merge( $hashArray, $payload );
     ksort( $orderedPrehash );
     $signature = md5( http_build_query( $orderedPrehash ) );
-    // configure curl
+    // Configure cURL
     $ch = curl_init($url);
     $useragent = 'WHMCS';
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -54,7 +53,7 @@ if ( !empty( $_POST['subscriptionid'] )  )
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query($payload));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($payload));
     curl_setopt($ch, CURLOPT_VERBOSE, 1);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array(
         'version: v1',
@@ -71,7 +70,7 @@ if ( !empty( $_POST['subscriptionid'] )  )
 
     $whInvoiceID = substr( $_POST['item_name'], strpos( $_POST['item_name'], '#' )  + 1 );
 
-    if ( $pfResponse->data->message == 'Success' )
+    if ( $pfResponse->data->message == true )
     {
         //    sleep( 5 );
         logActivity( 'PayFast Ad Hoc payment with subscriptionid: ' . $guid . ' successfully completed' );

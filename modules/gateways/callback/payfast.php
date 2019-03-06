@@ -14,7 +14,6 @@
 
 # Required File Includes
 include( "../../../init.php" );
-//include( "../../../dbconnect.php" );
 include( "../../../includes/functions.php" );
 include( "../../../includes/gatewayfunctions.php" );
 include( "../../../includes/invoicefunctions.php" );
@@ -169,6 +168,7 @@ if( !$pfError )
     {
         $orderId = substr( $pfData['item_description'], strpos( $pfData['item_description'], '#' )  + 1 );
         $whInvoiceID = substr( $pfData['item_name'], strpos( $pfData['item_name'], '#' )  + 1 );
+        $clientEmail = $pfData['email_address'];
         // Successful
         addInvoicePayment( $whInvoiceID, $pfData['pf_payment_id'],
             $amountGross, -1 * $amountFee, $gatewaymodule );
@@ -176,7 +176,7 @@ if( !$pfError )
 
         if ( !empty( $pfData['token'] ) )
         {
-            setSubscriptionId( $pfData['token'], $orderId );
+            setSubscriptionId( $pfData['token'], $clientEmail );
             setDomainStatus( $orderId );
             LogActivity( 'PayFast subscription token ' . $pfData['token'] . ' used to pay for order ' . $orderId );
         }
