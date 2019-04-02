@@ -170,7 +170,7 @@ function payfast_link( $params )
 
     if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) && ( !isset( $clientSubId['subscriptionid'] ) || !$enableSingleToken ) )
     {
-        $output .= generateForm( $payfastUrl, $data, null, $clientSubId, $params['systemurl'], $hosting['userid']);
+        $output .= generateForm( $payfastUrl, $data, null, null, $params['systemurl'], $hosting['userid']);
     }
 
     if ( $enableSingleToken && !empty( $clientSubId['subscriptionid'] ) )
