@@ -83,16 +83,17 @@ function payfast_link( $params )
         ->get();
     $subsToken = $clientRec[0]->gatewayid;
 
-    if ( $oldSubId || $subsToken )
+    if ( !empty( $subsToken ) )
     {
-        if ( !empty( $subsToken ) )
-        {
-            $clientSubId = $subsToken;
-        }
-        else
-        {
-            $clientSubId = $oldSubId;
-        }
+        $clientSubId = $subsToken;
+    }
+    elseif ( !empty( $oldSubId ) )
+    {
+        $clientSubId = $oldSubId;
+    }
+    else
+    {
+        $clientSubId = null;
     }
 
     if ( $enableSingleToken )
@@ -168,12 +169,12 @@ function payfast_link( $params )
         $output .= '&nbsp;';
     }
 
-    if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) && ( !isset( $clientSubId['subscriptionid'] ) || !$enableSingleToken ) )
+    if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) && ( !isset( $clientSubId ) || !$enableSingleToken ) )
     {
         $output .= generateForm( $payfastUrl, $data, null, null, $params['systemurl'], $hosting['userid']);
     }
 
-    if ( $enableSingleToken && !empty( $clientSubId['subscriptionid'] ) )
+    if ( $enableSingleToken && !empty( $clientSubId ) )
     {
         $output .= generateForm( $payfastUrl, $data, null, $clientSubId, $params['systemurl'], $hosting['userid'] );
     }
