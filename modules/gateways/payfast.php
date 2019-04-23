@@ -269,31 +269,31 @@ function generateForm( $payfastUrl, $data, $button = null, $clientSubId = null, 
 
     if ( !empty( $clientSubId ) )
     {
-        if ( $userId != null )
-        {
-            LogActivity( 'PayFast single subscription token ' . $clientSubId . ' set to user ' . $userId );
-        }
-
-        $output = '<form id="payfast_form" name="payfast_form" action="'.$systemUrl.'/modules/gateways/payfast/adhoc.php" method="post" >';
-        foreach ( $data as $name => $value )
-        {
-            $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
-        }
-        $output .= '<input type="hidden" name="subscriptionid" value="' . $clientSubId . '">';
-
-        if ( is_null( $button ) )
-        {
-            $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow">';
-        }
-        else
-        {
-            $output .= $button;
-        }
-
-        $output .= '</form>';
-
-//        $output .= 'Processing Payment';
-        return $output;
+//        if ( $userId != null )
+//        {
+//            LogActivity( 'PayFast single subscription token ' . $clientSubId . ' set to user ' . $userId );
+//        }
+//
+//        $output = '<form id="payfast_form" name="payfast_form" action="'.$systemUrl.'/modules/gateways/payfast/adhoc.php" method="post" >';
+//        foreach ( $data as $name => $value )
+//        {
+//            $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
+//        }
+//        $output .= '<input type="hidden" name="subscriptionid" value="' . $clientSubId . '">';
+//
+//        if ( is_null( $button ) )
+//        {
+//            $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow">';
+//        }
+//        else
+//        {
+//            $output .= $button;
+//        }
+//
+//        $output .= '</form>';
+//
+////        $output .= 'Processing Payment';
+//        return $output;
     }
 }
 
