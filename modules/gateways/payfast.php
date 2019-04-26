@@ -77,7 +77,7 @@ function payfast_link( $params )
 
     $oldSubId = $tblhosting[0]->subscriptionid;
 
-    $userId = $hosting['userid'];
+    $userId = $params['clientdetails']['userid'];
     $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
         ->where('id', $userId )
         ->get();
