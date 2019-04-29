@@ -19,6 +19,8 @@ function oneClickPayment($params)
         ->latest('id')
         ->first();
 
+    $oldSubId = $oldSubId->subscriptionid;
+    
     $userId = $params['clientsdetails']['userid'];
     $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
         ->where('id', $userId )
