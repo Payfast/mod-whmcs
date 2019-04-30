@@ -65,19 +65,23 @@ function payfast_link( $params )
     $subscriptionData = array();
     $forceOneTime = true;
 
+    $userId = $params['clientdetails']['userid'];
+    
     $invoiceItems = getInvoiceItems( $params['invoiceid'] );
 
     $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
     $item = $invoiceHostingItems[0];
     $hosting = getHosting( $item['relid'] );
 
-    $tblhosting = Illuminate\Database\Capsule\Manager::table('tblhosting')
-        ->where('id', $item['relid'])
-        ->get();
 
-    $oldSubId = $tblhosting[0]->subscriptionid;
+    $oldSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
+        ->where('userid', $userId)
+        ->where('subscriptionid', '<>', '')
+        ->latest('id')
+        ->first();
+    
+    $oldSubId = $oldSubId->subscriptionid;
 
-    $userId = $params['clientdetails']['userid'];
     $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
         ->where('id', $userId )
         ->get();
