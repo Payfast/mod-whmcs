@@ -17,25 +17,31 @@ global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
-define( 'PF_MODULE_VER', '1.4.14' );
+define( 'PF_MODULE_VER', '2.0.0' );
 
+// Fetch gateway configuration parameters.
+$gatewayParams = getGatewayVariables( 'payfast' );
+
+define( 'PF_DEBUG', ( $gatewayParams['debug'] == 'on' ? true : false ) );
 
 // Features
 // - PHP
-$pfFeatures = 'PHP '. phpversion() .';';
+$pfFeatures = 'PHP ' . phpversion() . ';';
 
 // - cURL
-if( in_array( 'curl', get_loaded_extensions() ) )
+if ( in_array( 'curl', get_loaded_extensions() ) )
 {
     define( 'PF_CURL', '' );
     $pfVersion = curl_version();
-    $pfFeatures .= ' curl '. $pfVersion['version'] .';';
+    $pfFeatures .= ' curl ' . $pfVersion['version'] . ';';
 }
 else
+{
     $pfFeatures .= ' nocurl;';
+}
 
-// Create user agent
-define( 'PF_USER_AGENT', PF_SOFTWARE_NAME .'/'. PF_SOFTWARE_VER .' ('. trim( $pfFeatures ) .') '. PF_MODULE_NAME .'/'. PF_MODULE_VER );
+// Create user agrent
+define( 'PF_USER_AGENT', PF_SOFTWARE_NAME . '/' . PF_SOFTWARE_VER . ' (' . trim( $pfFeatures ) . ') ' . PF_MODULE_NAME . '/' . PF_MODULE_VER );
 
 // General Defines
 define( 'PF_TIMEOUT', 15 );
@@ -58,14 +64,14 @@ define( 'PF_ERR_ORDER_PROCESSED', 'This order has already been processed' );
 define( 'PF_ERR_PDT_FAIL', 'PDT query failed' );
 define( 'PF_ERR_PDT_TOKEN_MISSING', 'PDT token not present in URL' );
 define( 'PF_ERR_SESSIONID_MISMATCH', 'Session ID mismatch' );
-define( 'PF_ERR_UNKNOWN', 'Unkown error occurred' );
+define( 'PF_ERR_UNKNOWN', 'Unknown error occurred' );
 
 // General
 define( 'PF_MSG_OK', 'Payment was successful' );
 define( 'PF_MSG_FAILED', 'Payment has failed' );
 define( 'PF_MSG_PENDING',
-    'The payment is pending. Please note, you will receive another Instant'.
-    ' Transaction Notification when the payment status changes to'.
+    'The payment is pending. Please note, you will receive another Instant' .
+    ' Transaction Notification when the payment status changes to' .
     ' "Completed", or "Failed"' );
 
 /**
@@ -83,25 +89,25 @@ function pflog( $msg = '', $close = false )
     global $module;
 
     // Only log if debugging is enabled
-    if( PF_DEBUG )
+    if ( PF_DEBUG )
     {
-        if( $close )
+        if ( $close )
         {
             fclose( $fh );
         }
         else
         {
             // If file doesn't exist, create it
-            if( !$fh )
+            if ( !$fh )
             {
                 $pathinfo = pathinfo( __FILE__ );
-                $fh = fopen( $pathinfo['dirname'] .'/payfast.log', 'a+' );
+                $fh = fopen( $pathinfo['dirname'] . '/payfast.log', 'a+' );
             }
 
             // If file was successfully created
-            if( $fh )
+            if ( $fh )
             {
-                $line = date( 'Y-m-d H:i:s' ) .' : '. $msg ."\n";
+                $line = date( 'Y-m-d H:i:s' ) . ' : ' . $msg . "\n";
 
                 fwrite( $fh, $line );
             }
@@ -120,14 +126,21 @@ function pfGetData()
     $pfData = $_POST;
 
     // Strip any slashes in data
-    foreach( $pfData as $key => $val )
-        $pfData[$key] = stripslashes( $val );
+    foreach ( $pfData as $key => $val )
+    {
+        $pfData[$key] = html_entity_decode( stripslashes( $val ), ENT_QUOTES );
+    }
 
     // Return "false" if no data was received
-    if( sizeof( $pfData ) == 0 )
-        return( false );
+    if ( sizeof( $pfData ) == 0 )
+    {
+        return ( false );
+    }
     else
-        return( $pfData );
+    {
+        return ( $pfData );
+    }
+
 }
 
 /**
@@ -138,11 +151,11 @@ function pfGetData()
 function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase = null )
 {
     // Dump the submitted variables and calculate security signature
-    foreach( $pfData as $key => $val )
+    foreach ( $pfData as $key => $val )
     {
-        if( $key != 'signature' )
+        if ( $key != 'signature' )
         {
-            $pfParamString .= $key .'='. urlencode( $val ) .'&';
+            $pfParamString .= $key . '=' . urlencode( $val ) . '&';
         }
         else
         {
@@ -153,9 +166,9 @@ function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase
     // Remove the last '&' from the parameter string
     $pfParamString = substr( $pfParamString, 0, -1 );
 
-    if( !is_null( $pfPassphrase ) )
+    if ( !is_null( $pfPassphrase ) )
     {
-        $pfParamStringWithPassphrase = $pfParamString."&passphrase=". urlencode( $pfPassphrase );
+        $pfParamStringWithPassphrase = $pfParamString . "&passphrase=" . urlencode( $pfPassphrase );
         $signature = md5( $pfParamStringWithPassphrase );
     }
     else
@@ -165,10 +178,10 @@ function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase
 
     $result = ( $pfData['signature'] == $signature );
 
-    pflog( 'Signature = '. ( $result ? 'valid' : 'invalid' ) );
-    pflog('PFString = '.$pfParamString);
+    pflog( 'Signature = ' . ( $result ? 'valid' : 'invalid' ) );
+    pflog( 'PFString = ' . $pfParamString );
 
-    return( $result );
+    return ( $result );
 }
 
 /**
@@ -181,24 +194,24 @@ function pfValidSignature( $pfData = null, &$pfParamString = null, $pfPassphrase
  */
 function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfProxy = null )
 {
-    pflog( 'Host = '. $pfHost );
-    pflog( 'Params = '. $pfParamString );
+    pflog( 'Host = ' . $pfHost );
+    pflog( 'Params = ' . $pfParamString );
 
     // Use cURL (if available)
-    if( defined( 'PF_CURL' ) )
+    if ( defined( 'PF_CURL' ) )
     {
         // Variable initialization
-        $url = 'https://'. $pfHost .'/eng/query/validate';
+        $url = 'https://' . $pfHost . '/eng/query/validate';
 
         // Create default cURL object
         $ch = curl_init();
 
-        // Set cURL options - Use curl_setopt for greater PHP compatibility
+        // Set cURL options - Use curl_setopt for freater PHP compatibility
         // Base settings
-        curl_setopt( $ch, CURLOPT_USERAGENT, PF_USER_AGENT );  // Set user agent
-        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );      // Return output as string rather than outputting it
-        curl_setopt( $ch, CURLOPT_HEADER, false );             // Don't include header in output
-        curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt( $ch, CURLOPT_USERAGENT, PF_USER_AGENT ); // Set user agent
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true ); // Return output as string rather than outputting it
+        curl_setopt( $ch, CURLOPT_HEADER, false ); // Don't include header in output
+        curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, 2 );
         curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
 
         // Standard settings
@@ -206,10 +219,12 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfPro
         curl_setopt( $ch, CURLOPT_POST, true );
         curl_setopt( $ch, CURLOPT_POSTFIELDS, $pfParamString );
         curl_setopt( $ch, CURLOPT_TIMEOUT, PF_TIMEOUT );
-        if( !empty( $pfProxy ) )
+        if ( !empty( $pfProxy ) )
+        {
             curl_setopt( $ch, CURLOPT_PROXY, $proxy );
+        }
 
-        // Execute cURL
+        // Execute CURL
         $response = curl_exec( $ch );
         curl_close( $ch );
     }
@@ -223,48 +238,52 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '', $pfPro
 
         // Construct Header
         $header = "POST /eng/query/validate HTTP/1.0\r\n";
-        $header .= "Host: ". $pfHost ."\r\n";
-        $header .= "User-Agent: ". PF_USER_AGENT ."\r\n";
+        $header .= "Host: " . $pfHost . "\r\n";
+        $header .= "User-Agent: " . PF_USER_AGENT . "\r\n";
         $header .= "Content-Type: application/x-www-form-urlencoded\r\n";
         $header .= "Content-Length: " . strlen( $pfParamString ) . "\r\n\r\n";
 
         // Connect to server
-        $socket = fsockopen( 'ssl://'. $pfHost, 443, $errno, $errstr, PF_TIMEOUT );
+        $socket = fsockopen( 'ssl://' . $pfHost, 443, $errno, $errstr, PF_TIMEOUT );
 
         // Send command to server
         fputs( $socket, $header . $pfParamString );
 
         // Read the response from the server
-        while( !feof( $socket ) )
+        while ( !feof( $socket ) )
         {
             $line = fgets( $socket, 1024 );
 
             // Check if we are finished reading the header yet
-            if( strcmp( $line, "\r\n" ) == 0 )
+            if ( strcmp( $line, "\r\n" ) == 0 )
             {
-                // read the header
+                // Read the header
                 $headerDone = true;
             }
             // If header has been processed
-            else if( $headerDone )
+            else if ( $headerDone )
             {
                 // Read the main response
                 $response .= $line;
             }
         }
-
     }
 
-    pflog( "Response:\n". print_r( $response, true ) );
+    pflog( "Response:\n" . print_r( $response, true ) );
 
     // Interpret Response
     $lines = explode( "\r\n", $response );
     $verifyResult = trim( $lines[0] );
 
-    if( strcasecmp( $verifyResult, 'VALID' ) == 0 )
-        return( true );
+    if ( strcasecmp( $verifyResult, 'VALID' ) == 0 )
+    {
+        return ( true );
+    }
     else
-        return( false );
+    {
+        return ( false );
+    }
+
 }
 
 /**
@@ -285,23 +304,31 @@ function pfValidIP( $sourceIP )
 
     $validIps = array();
 
-    foreach( $validHosts as $pfHostname )
+    foreach ( $validHosts as $pfHostname )
     {
         $ips = gethostbynamel( $pfHostname );
 
-        if( $ips !== false )
+        if ( $ips !== false )
+        {
             $validIps = array_merge( $validIps, $ips );
+        }
+
     }
 
     // Remove duplicates
     $validIps = array_unique( $validIps );
 
-    pflog( "Valid IPs:\n". print_r( $validIps, true ) );
+    pflog( "Valid IPs:\n" . print_r( $validIps, true ) );
 
-    if( in_array( $sourceIP, $validIps ) )
-        return( true );
+    if ( in_array( $sourceIP, $validIps ) )
+    {
+        return ( true );
+    }
     else
-        return( false );
+    {
+        return ( false );
+    }
+
 }
 
 /**
@@ -319,10 +346,13 @@ function pfValidIP( $sourceIP )
  */
 function pfAmountsEqual( $amount1, $amount2 )
 {
-    if( abs( floatval( $amount1 ) - floatval( $amount2 ) ) > PF_EPSILON )
-        return( false );
+    if ( abs( floatval( $amount1 ) - floatval( $amount2 ) ) > PF_EPSILON )
+    {
+        return ( false );
+    }
     else
-        return( true );
-}
+    {
+        return ( true );
+    }
 
-?>
+}

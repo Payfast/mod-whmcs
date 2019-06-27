@@ -6,314 +6,444 @@
  * You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin / code in your own website in conjunction with a registered and active PayFast account. If your PayFast account is terminated for any reason, you may not use this plugin / code or part thereof.
  * Except as expressly indicated in this licence, you may not use, copy, modify or distribute this plugin / code or part thereof in any way.
  *
- * @author     Jonathan Smit
- * @link       http://www.payfast.co.za/help/whmcs
  */
-
-
-
-// {{{ payfast_config()
-/**
- * payfast_config()
- *
- * @return
- */
-function payfast_config()
+if ( !defined( "WHMCS" ) )
 {
-    $configArray = array(
-        'FriendlyName' => array( 'Type' => 'System', 'Value' => 'PayFast' ),
-
-        'merchant_id' => array( 'FriendlyName' => 'Merchant ID', 'Type' => 'text', 'Size' => '20',
-            'Description' => 'Your Merchant ID as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast', ),
-        'merchant_key'  => array( 'FriendlyName' => 'Merchant Key', 'Type' => 'text', 'Size' => '20',
-            'Description' => 'Your Merchant Key as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast', ),
-        'passphrase'  => array( 'FriendlyName' => 'PassPhrase', 'Type' => 'text', 'Size' => '32',
-            'Description' => '*** DO NOT SET THIS UNLESS YOU HAVE SET IT ON THE <a href="http://www.payfast.co.za/acc/integration">Integration</a> PAGE ON PayFast ***', ),
-        'enable_recurring' => array( 'FriendlyName' => 'Enable Recurring Billing', 'Type' => 'yesno', 'Description' => '*** You need to enable Ad Hoc Payments on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page on PayFast ***'),
-        'force_recurring' => array( 'FriendlyName' => 'Force Recurring Billing', 'Type' => 'yesno', 'Description' => 'Hide the one time payment when a subscription can be created'),
-    //    'enable_single_token' => array( 'FriendlyName' => 'Enable Single Subscription ID ', 'Type' => 'yesno', 'Description' => 'Set a single subscription ID for each client so they will not have to be redirected to PayFast for any payment on any invoice subsequent to the initial payment. Recurring billing must be enabled for this feature.'),
-        'test_mode' => array( 'FriendlyName' => 'Test Mode', 'Type' => 'yesno',
-            'Description' => 'Check this to put the interface in test mode', ),
-        'debug' => array( 'FriendlyName' => 'Debugging', 'Type' => 'yesno',
-            'Description' => 'Check this to turn debugging on', ),
-    );
-
-    return( $configArray );
+    die( "This file cannot be accessed directly" );
 }
-// }}}
-// {{{ payfast_link()
+
 /**
- * payfast_link()
+ * Define module related meta data.
  *
- * Function used to generate code for form to redirect to PayFast
+ * Values returned here are used to determine module related capabilities and
+ * settings.
  *
- * @param mixed $params
- * @return
+ * @see https://developers.whmcs.com/payment-gateways/meta-data-params/
+ *
+ * @return array
  */
-function payfast_link( $params )
+function PayFast_MetaData()
 {
-    // Include the PayFast common file
-    define( 'PF_DEBUG', ( $params['debug'] == 'on' ? true : false ) );
-    require_once('payfast/payfast_common.inc');
+    return array(
+        'DisplayName' => 'PayFast',
+        'APIVersion' => '1.1', // Use API Version 1.1
+        'DisableLocalCredtCardInput' => true,
+        'TokenisedStorage' => false, //  _storeremote takes CC details and returns token via gateway API
+    );
+}
 
-    require_once( 'payfast/' . getVer() );
-    $subscriptionEnabled = $params['enable_recurring'] == 'on' ? true : false;
-    $forceSubscription = $params['force_recurring'] == 'on' ? true : false;
-    $enableSingleToken = $subscriptionEnabled ==  true || $forceSubscription == true ? true : false;
-    $output = '';
-    $clientSubId = '';
-    $subscriptionData = array();
-    $forceOneTime = true;
+/**
+ * Define gateway configuration options.
+ *
+ * The fields you define here determine the configuration options that are
+ * presented to administrator users when activating and configuring your
+ * payment gateway module for use.
+ *
+ * Supported field types include:
+ * * text
+ * * password
+ * * yesno
+ * * dropdown
+ * * radio
+ * * textarea
+ *
+ * Examples of each field type and their possible configuration parameters are
+ * provided in the sample function below.
+ *
+ * @return array
+ */
+function PayFast_config()
+{
+    return array(
+        // the friendly display name for a payment gateway should be
+        // defined here for backwards compatibility
+        'FriendlyName' => array(
+            'Type' => 'System',
+            'Value' => 'PayFast',
+        ),
+        // Merchant ID field
+        'merchant_id' => array(
+            'FriendlyName' => 'Merchant ID',
+            'Type' => 'text',
+            'Size' => '25',
+            'Default' => '',
+            'Description' => 'Your Merchant ID as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page of your PayFast account',
+        ),
+        // Merchant Key field
+        'merchant_key' => array(
+            'FriendlyName' => 'Merchant Key',
+            'Type' => 'text',
+            'Size' => '25',
+            'Default' => '',
+            'Description' => 'Your Merchant Key as given on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page of your PayFast account',
+        ),
+        // PassPhrase field
+        'passphrase' => array(
+            'FriendlyName' => 'PassPhrase',
+            'Type' => 'text',
+            'Size' => '32',
+            'Default' => '',
+            'Description' => 'Your PassPhrase as when set on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page of your PayFast account',
+        ),
+        // Recurring option
+        'enable_recurring' => array(
+            'FriendlyName' => 'Enable Recurring Billing',
+            'Type' => 'yesno',
+            'Description' => 'Check to enable Recurring Billing after enabling adhoc Payments on the <a href="http://www.payfast.co.za/acc/integration">Integration</a> page of your PayFast account',
+        ),
+        // Force Recurring option
+        'force_recurring' => array(
+            'FriendlyName' => 'Force Recurring Billing',
+            'Type' => 'yesno',
+            'Description' => 'Check to force all clients to use tokenized billing(adhoc subscriptions). This requires "Enable Recurring Billing" to be enabled to take effect.',
+        ),
+        // Sandbox option
+        'test_mode' => array(
+            'FriendlyName' => 'Sandbox Test Mode',
+            'Type' => 'yesno',
+            'Description' => 'Check to enable sandbox mode',
+        ),
+        // Debugging option
+        'debug' => array(
+            'FriendlyName' => 'Debugging',
+            'Type' => 'yesno',
+            'Description' => 'Check this to turn debug logging on',
+        ),
+    );
+}
 
-    $userId = $params['clientdetails']['userid'];
-    
-    $invoiceItems = getInvoiceItems( $params['invoiceid'] );
+/**
+ * Redirect to PayFast_link on Product/Service purchase instead of asking for card details
+ */
+function PayFast_nolocalcc()
+{
+}
 
-    $invoiceHostingItems = getInvoiceHostingItems($params['invoiceid']);
-    $item = $invoiceHostingItems[0];
-    $hosting = getHosting( $item['relid'] );
+/**
+ * Payment link that redirects to PayFast.
+ *
+ * Required by third party payment gateway modules only.
+ *
+ * Defines the HTML output displayed on an invoice. Typically consists of an
+ * HTML form that will take the user to the payment gateway endpoint.
+ *
+ * @param array $params Payment Gateway Module Parameters
+ *
+ * @see https://developers.whmcs.com/payment-gateways/third-party-gateway/
+ *
+ * @return string
+ */
 
+function PayFast_link( $params )
+{
+    require_once 'payfast/payfast_common.inc';
 
-    $oldSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
-        ->where('userid', $userId)
-        ->where('subscriptionid', '<>', '')
-        ->latest('id')
-        ->first();
-    
-    $oldSubId = $oldSubId->subscriptionid;
+    // PayFast Configuration Parameters
+    $merchant_id = $params['merchant_id'];
+    $merchant_key = $params['merchant_key'];
+    $passphrase = $params['passphrase'];
+    $enable_recurring = $params['enable_recurring'];
+    $force_recurring = $params['force_recurring'];
+    $testMode = $params['test_mode'];
+    $debug = $params['debug'];
 
-    $clientRec = Illuminate\Database\Capsule\Manager::table('tblclients')
-        ->where('id', $userId )
-        ->get();
-    $subsToken = $clientRec[0]->gatewayid;
+    // Invoice Parameters
+    $invoiceId = $params['invoiceid'];
+    $description = $params["description"];
+    $amount = $params['amount'];
+    $currencyCode = $params['currency'];
 
-    if ( !empty( $subsToken ) )
+    // Client Parameters
+    $firstname = $params['clientdetails']['firstname'];
+    $lastname = $params['clientdetails']['lastname'];
+    $email = $params['clientdetails']['email'];
+    $address1 = $params['clientdetails']['address1'];
+    $address2 = $params['clientdetails']['address2'];
+    $city = $params['clientdetails']['city'];
+    $state = $params['clientdetails']['state'];
+    $postcode = $params['clientdetails']['postcode'];
+    $country = $params['clientdetails']['country'];
+    $phone = $params['clientdetails']['phonenumber'];
+    $pfToken = $params['clientdetails']['gatewayid'];
+
+    // System Parameters
+    $companyName = $params['companyname'];
+    $systemUrl = $params['systemurl'];
+    $returnUrl = $params['returnurl'];
+    $langPayNow = $params['langpaynow'];
+    $moduleDisplayName = $params['name'];
+    $moduleName = $params['paymentmethod'];
+    $whmcsVersion = $params['whmcsVersion'];
+
+    /**
+     * Creates payment button redirects to PayFast.
+     *
+     * Nested function used inside PayFast_link only.
+     *
+     * @param array $pfdata Payment Parameters
+     *
+     * @param string $button_image Button Image Name
+     *
+     * @param string $url PayFast URL To Post To
+     *
+     * @return string
+     */
+    function pf_create_button( $pfdata, $button_image, $url, $passphrase )
     {
-        $clientSubId = $subsToken;
-    }
-    elseif ( !empty( $oldSubId ) )
-    {
-        $clientSubId = $oldSubId;
-    }
-    else
-    {
-        $clientSubId = null;
+        // Create output string
+        $pfOutput = '';
+        foreach ( $pfdata as $key => $val )
+        {
+            $pfOutput .= $key . '=' . urlencode( trim( $val ) ) . '&';
+        }
+
+        if ( empty( $passphrase ) )
+        {
+            $pfOutput = substr( $pfOutput, 0, -1 );
+        }
+        else
+        {
+            $pfOutput = $pfOutput . "passphrase=" . urlencode( $passphrase );
+        }
+
+        $pfdata['signature'] = md5( $pfOutput );
+
+        $pfhtml = '<form method="post" action="' . $url . '">';
+        foreach ( $pfdata as $k => $v )
+        {
+            $pfhtml .= '<input type="hidden" name="' . $k . '" value="' . $v . '" />';
+        }
+        $buttonValue = $button_image == 'light-small-subscribe.png' ? 'Subscribe Now' : 'Pay Now';
+        $pfhtml .= '<input type="image" align="centre" src="' . $params['systemurl'] . '/modules/gateways/payfast/images/' . $button_image . '" value="' . $buttonValue . '"></form>';
+        return $pfhtml;
     }
 
-    if ( $enableSingleToken )
+    //Cleanup PayFast Tokens stored in tblhosting
+    if ( empty( $pfToken ) )
     {
-        $forceOneTime = false;
-        $subscriptionData['custom_str2'] = $hosting['orderid'];
-        $subscriptionData['subscription_type'] = 2;
+        cleanup_tblhosting( $params );
     }
 
-    $pfHost = ( ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
-    $payfastUrl = 'https://'. $pfHost .'/eng/process';
+    $pfHost = (  ( $params['test_mode'] == 'on' ) ? 'sandbox' : 'www' ) . '.payfast.co.za';
+    $url = 'https://' . $pfHost . '/eng/process';
 
-    // If NOT test mode, use normal credentials
-    if( $params['test_mode'] != 'on' )
+    if (  ( $params['test_mode'] == 'on' ) && ( empty( $params['merchant_id'] ) || empty( $params['merchant_key'] ) ) )
     {
-        $merchantId = $params['merchant_id'];
-        $merchantKey = $params['merchant_key'];
+        $merchant_id = '10004002';
+        $merchant_key = 'q1cd2rdny4a53';
+        $passphrase = 'payfast';
     }
-    // If test mode, use generic sandbox credentials
-    else
-    {
-        $merchantId = '10004002';
-        $merchantKey = 'q1cd2rdny4a53';
-    }
-
-    // Create URLs
-    if ( substr( $params['systemurl'], -1 ) == '/' )
-    {
-        $params['systemurl'] = substr_replace( $params['systemurl'], '', -1 );
-    }
-    $returnUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
-    $cancelUrl = $params['systemurl'] .'/viewinvoice.php?id='. $params['invoiceid'];
-    $notifyUrl = $params['systemurl'] .'/modules/gateways/callback/payfast.php';
 
     // Construct data for the form
     $data = array(
         // Merchant details
-        'merchant_id' => $merchantId,
-        'merchant_key' => $merchantKey,
+        'merchant_id' => $merchant_id,
+        'merchant_key' => $merchant_key,
         'return_url' => $returnUrl,
-        'cancel_url' => $cancelUrl,
-        'notify_url' => $notifyUrl,
+        'cancel_url' => $returnUrl,
+        'notify_url' => $systemUrl . 'modules/gateways/callback/payfast.php',
 
         // Buyer Details
-        'name_first' => trim( $params['clientdetails']['firstname'] ),
-        'name_last' => trim( $params['clientdetails']['lastname'] ),
-        'email_address' => trim( $params['clientdetails']['email'] ),
+        'name_first' => trim( $firstname ),
+        'name_last' => trim( $lastname ),
+        'email_address' => trim( $email ),
 
         // Item details
-        'm_payment_id' => $params['invoiceid'],
-        'amount' => number_format( $params['amount'], 2, '.', '' ),
-        'item_name' => $params['companyname'] .' purchase, Invoice ID #'. $params['invoiceid'],
-        'item_description' => $params['companyname'] .' purchase, Order ID #'. $hosting['orderid'],
-        'custom_str1' => $params['basecurrency']
+        'm_payment_id' => $invoiceId,
+        'amount' => number_format( $amount, 2, '.', '' ),
+        'item_name' => $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'],
+        'item_description' => $description,
+        'custom_str1' => 'PF_WHMCS_7.6_' . PF_MODULE_VER,
     );
 
-    if( !$forceOneTime )
+    //Create PayFast button/s on Invoice
+    $htmlOutput = '';
+    $button_image = 'light-small-paynow.png';
+
+    if ( $enable_recurring && empty( $pfToken ) )
     {
-        if ( $forceSubscription || $subscriptionEnabled )
+        if ( !$force_recurring )
         {
-            $dataForSig = array_merge( $data, $subscriptionData );
-            $subscriptionData['signature'] = generateSignature( $params, $dataForSig );
+            //Create once-off button
+            $htmlOutput = pf_create_button( $data, $button_image, $url, $passphrase );
         }
+
+        //Set button data to PayFast Subscription
+        $data['subscription_type'] = 2;
+        $button_image = 'light-small-subscribe.png';
     }
+    //Append PayFast button
+    $htmlOutput .= pf_create_button( $data, $button_image, $url, $passphrase );
 
-    $data['signature'] = generateSignature($params, $data);
-
-    $data['user_agent'] = 'WHMCS 6.x';
-    if( !$forceOneTime && ( $subscriptionEnabled || $forceSubscription ) && !isset( $clientSubId ) )
-    {
-        $button = '<input type="image" align="centre" src="'. $params['systemurl']. '/modules/gateways/payfast/images/light-small-subscribe.png" value="Subscribe Now">';
-        $output .= generateForm( $payfastUrl, array_merge( $data, $subscriptionData ), $button, $clientSubId, $params['systemurl'], $hosting['userid'] );
-        $output .= '&nbsp;';
-    }
-
-    if( $forceOneTime || ( !$forceOneTime && !$forceSubscription ) && ( !isset( $clientSubId ) || !$enableSingleToken ) )
-    {
-        $output .= generateForm( $payfastUrl, $data, null, null, $params['systemurl'], $hosting['userid']);
-    }
-
-    if ( $enableSingleToken && !empty( $clientSubId ) )
-    {
-        $output .= generateForm( $payfastUrl, $data, null, $clientSubId, $params['systemurl'], $hosting['userid'] );
-    }
-
-    return( $output );
+    return $htmlOutput;
 }
 
 /**
- * generateSignature
+ * Capture PayFast adhoc payment.
  *
+ * Called when a payment is to be processed and captured.
  *
+ * The card cvv number will only be present for the initial card holder present
+ * transactions. Automated recurring capture attempts will not provide it.
  *
- * @date ${date}
- * @version 1.0.0
- * @access
+ * @param array $params Payment Gateway Module Parameters
  *
- * @author Ron Darby <ron.darby@payfast.co.za>
- * @since 1.0.0
+ * @see https://developers.whmcs.com/payment-gateways/merchant-gateway/
  *
- * * @param $params
- * @param $dataForSig
- * @param $secureString
- * @param $data
- * @return mixed
- *
- *
+ * @return array Transaction response status
  */
-function generateSignature( $params, $dataForSig )
+function PayFast_capture( $params )
 {
-    $secureString = '';
-    foreach ( $dataForSig as $k => $v )
+
+    require_once 'payfast/payfast_common.inc';
+
+    pflog( 'PayFast capture called' );
+
+    // PayFast Configuration Parameters
+    $merchant_id = $params['merchant_id'];
+    $passphrase = $params['passphrase'];
+    //$enable_recurring = $params['enable_recurring'];
+    $testMode = $params['test_mode'];
+    $debug = $params['debug'];
+
+    // Invoice Parameters
+    $invoiceId = $params['invoiceid'];
+    $description = $params["description"];
+    $amount = $params['amount'];
+    $currencyCode = $params['currency'];
+
+    $guid = $params['gatewayid'];
+
+    // Client Parameters
+    $firstname = $params['clientdetails']['firstname'];
+    $lastname = $params['clientdetails']['lastname'];
+    $email = $params['clientdetails']['email'];
+    $address1 = $params['clientdetails']['address1'];
+    $address2 = $params['clientdetails']['address2'];
+    $city = $params['clientdetails']['city'];
+    $state = $params['clientdetails']['state'];
+    $postcode = $params['clientdetails']['postcode'];
+    $country = $params['clientdetails']['country'];
+    $phone = $params['clientdetails']['phonenumber'];
+
+    // System Parameters
+    $companyName = $params['companyname'];
+    $systemUrl = $params['systemurl'];
+    $returnUrl = $params['returnurl'];
+    $langPayNow = $params['langpaynow'];
+    $moduleDisplayName = $params['name'];
+    $moduleName = $params['paymentmethod'];
+    $whmcsVersion = $params['whmcsVersion'];
+
+    //Perform API call to capture payment and interpret result
+
+    //Build URL
+    $url = 'https://api.payfast.co.za/subscriptions/' . $guid . '/adhoc';
+
+    if ( $testMode == 'on' )
     {
-        $secureString .= $k . '=' . urlencode( htmlspecialchars( trim( $v ) ) ) . '&';
+        $url = $url . '?testing=true';
+        //Log testing true
+        pflog( "url: ?testing=true" );
+
+        //Use default sandbox credentials if no merchant id set
+        if ( empty( $params['merchant_id'] ) )
+        {
+            $merchant_id = '10004002';
+            $passphrase = 'payfast';
+        }
     }
 
-    if ( empty( $params['passphrase'] ) && $params['test_mode'] != 'on' )
-    {
-        $secureString = substr($secureString, 0, -1);
-    }
-    elseif ( $params['test_mode'] == 'on' )
-    {
-        $secureString .= 'passphrase=payfast';
-    }
-    else
-    {
-        $secureString .= 'passphrase=' . urlencode( trim( $params['passphrase'] ) );
-    }
+    $hashArray = array();
+    $payload = array();
 
-    return  md5($secureString);
+    $payload['amount'] = $amount * 100;
+    $payload['item_name'] = $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'];
+
+    //Prevention of race condition on adhoc ITN check
+    $payload['item_description'] = 'adhoc payment dc0521d355fe269bfa00b647310d760f';
+   
+    $payload['m_payment_id'] = $invoiceId;
+
+    $hashArray['version'] = 'v1';
+    $hashArray['merchant-id'] = $merchant_id;
+    $hashArray['passphrase'] = $passphrase;
+    $hashArray['timestamp'] = date( 'Y-m-d' ) . 'T' . date( 'H:i:s' );
+    $orderedPrehash = array_merge( $hashArray, $payload );
+    ksort( $orderedPrehash );
+    $signature = md5( http_build_query( $orderedPrehash ) );
+
+    //log Post data
+    pflog( 'version: ' . $hashArray['version'] );
+    pflog( 'merchant-id: ' . $hashArray['merchant-id'] );
+    pflog( 'signature: ' . $signature );
+    pflog( 'timestamp: ' . $hashArray['timestamp'] );
+
+    // configure curl
+    $ch = curl_init( $url );
+    $useragent = 'WHMCS';
+    curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+    curl_setopt( $ch, CURLOPT_HEADER, false );
+    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+    curl_setopt( $ch, CURLOPT_TIMEOUT, 60 );
+    curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "POST" );
+    curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $payload ) );
+    curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
+    curl_setopt( $ch, CURLOPT_HTTPHEADER, array(
+        'version: v1',
+        'merchant-id: ' . $merchant_id,
+        'signature: ' . $signature,
+        'timestamp: ' . $hashArray['timestamp'],
+    ) );
+
+    $response = curl_exec( $ch );
+    //Log API response
+    pflog( 'response :' . $response );
+
+    curl_close( $ch );
+
+    $pfResponse = json_decode( $response );
+
+    // Close log
+    pflog( '', true );
+    return array(
+        // 'success' if successful, otherwise 'declined', 'error' for failure
+        'status' => (  ( $pfResponse->data->response == 'true' ) ? 'success' : 'declined' ),
+        // Data to be recorded in the gateway log - can be a string or array
+        'rawdata' => ( empty( $response ) ? '' : $response ),
+        // Unique Transaction ID for the capture transaction
+        'transid' => $invoiceId,
+        // Optional fee amount for the fee value refunded
+        //'fees' => $feeAmount,
+    );
 }
 
 /**
- * generateForm
+ * Cleanup tblhosting.
  *
+ * Removes old tokens from tblhosting.
  *
+ * @param array $params Payment Gateway Module Parameters
  *
- * @date ${date}
- * @version 1.0.0
- * @access
- *
- * @author Ron Darby <ron.darby@payfast.co.za>
- * @since 1.0.0
- *
- * * @param $payfastUrl
- * @param $data
- * @return button html
- *
- *
+ **
  */
-function generateForm( $payfastUrl, $data, $button = null, $clientSubId = null, $systemUrl = null, $userId = null )
+function cleanup_tblhosting( $params )
 {
-    if ( is_null( $clientSubId ) )
+    $userId = $params['clientdetails']['userid'];
+    $oldSubId = Illuminate\Database\Capsule\Manager::table( 'tblhosting' )
+        ->where( 'userid', $userId )
+        ->where( 'subscriptionid', '<>', '' )
+        ->latest( 'id' )
+        ->first();
+    $oldSubId = $oldSubId->subscriptionid;
+    if ( !empty( $oldSubId ) )
     {
-        $output = '<form id="payfast_form" name="payfast_form" action="' . $payfastUrl . '" method="post">';
-        foreach ( $data as $name => $value )
-        {
-            $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
-        }
-        $output .= '<input type="hidden" name="subscriptionid" value="' . $clientSubId . '">';
-
-        if ( is_null( $button ) )
-        {
-            $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now">';
-        }
-        else
-        {
-            $output .= $button;
-        }
-        $output .= '</form>';
-        return $output;
-    }
-
-    if ( !empty( $clientSubId ) )
-    {
-//        if ( $userId != null )
-//        {
-//            LogActivity( 'PayFast single subscription token ' . $clientSubId . ' set to user ' . $userId );
-//        }
-//
-//        $output = '<form id="payfast_form" name="payfast_form" action="'.$systemUrl.'/modules/gateways/payfast/adhoc.php" method="post" >';
-//        foreach ( $data as $name => $value )
-//        {
-//            $output .= '<input type="hidden" name="' . $name . '" value="' . $value . '">';
-//        }
-//        $output .= '<input type="hidden" name="subscriptionid" value="' . $clientSubId . '">';
-//
-//        if ( is_null( $button ) )
-//        {
-//            $output .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/light-small-paynow.png" value="Pay Now" id="paynow">';
-//        }
-//        else
-//        {
-//            $output .= $button;
-//        }
-//
-//        $output .= '</form>';
-//
-////        $output .= 'Processing Payment';
-//        return $output;
+        Illuminate\Database\Capsule\Manager::table( 'tblhosting' )
+            ->where( 'userid', $userId )
+            ->update(
+                [
+                    'subscriptionid' => '',
+                ]
+            );
     }
 }
-
-function getVer()
-{
-    //return 'v5_include.php';
-    $v6 = class_exists('Illuminate\Database\Capsule\Manager');
-    if( $v6 )
-    {
-        return 'v6_include.php';
-    }
-    else
-    {
-        return 'v5_include.php';
-    }
-}
-
-// }}}
-?>
