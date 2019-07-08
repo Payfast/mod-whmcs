@@ -120,6 +120,49 @@ function PayFast_nolocalcc()
 }
 
 /**
+ * Creates payment button redirects to PayFast.
+ *
+ * Nested function used inside PayFast_link only.
+ *
+ * @param array $pfdata Payment Parameters
+ *
+ * @param string $button_image Button Image Name
+ *
+ * @param string $url PayFast URL To Post To
+ *
+ * @return string
+ */
+function pf_create_button( $pfdata, $button_image, $url, $passphrase )
+{
+    // Create output string
+    $pfOutput = '';
+    foreach ( $pfdata as $key => $val )
+    {
+        $pfOutput .= $key . '=' . urlencode( trim( $val ) ) . '&';
+    }
+
+    if ( empty( $passphrase ) )
+    {
+        $pfOutput = substr( $pfOutput, 0, -1 );
+    }
+    else
+    {
+        $pfOutput = $pfOutput . "passphrase=" . urlencode( $passphrase );
+    }
+
+    $pfdata['signature'] = md5( $pfOutput );
+
+    $pfhtml = '<form method="post" action="' . $url . '">';
+    foreach ( $pfdata as $k => $v )
+    {
+        $pfhtml .= '<input type="hidden" name="' . $k . '" value="' . $v . '" />';
+    }
+    $buttonValue = $button_image == 'light-small-subscribe.png' ? 'Subscribe Now' : 'Pay Now';
+    $pfhtml .= '<input type="image" align="centre" src="' . $params['systemurl'] . '/modules/gateways/payfast/images/' . $button_image . '" value="' . $buttonValue . '"></form>';
+    return $pfhtml;
+}
+
+/**
  * Payment link that redirects to PayFast.
  *
  * Required by third party payment gateway modules only.
@@ -133,7 +176,6 @@ function PayFast_nolocalcc()
  *
  * @return string
  */
-
 function PayFast_link( $params )
 {
     require_once 'payfast/payfast_common.inc';
@@ -175,49 +217,6 @@ function PayFast_link( $params )
     $moduleName = $params['paymentmethod'];
     $whmcsVersion = $params['whmcsVersion'];
 
-    /**
-     * Creates payment button redirects to PayFast.
-     *
-     * Nested function used inside PayFast_link only.
-     *
-     * @param array $pfdata Payment Parameters
-     *
-     * @param string $button_image Button Image Name
-     *
-     * @param string $url PayFast URL To Post To
-     *
-     * @return string
-     */
-    function pf_create_button( $pfdata, $button_image, $url, $passphrase )
-    {
-        // Create output string
-        $pfOutput = '';
-        foreach ( $pfdata as $key => $val )
-        {
-            $pfOutput .= $key . '=' . urlencode( trim( $val ) ) . '&';
-        }
-
-        if ( empty( $passphrase ) )
-        {
-            $pfOutput = substr( $pfOutput, 0, -1 );
-        }
-        else
-        {
-            $pfOutput = $pfOutput . "passphrase=" . urlencode( $passphrase );
-        }
-
-        $pfdata['signature'] = md5( $pfOutput );
-
-        $pfhtml = '<form method="post" action="' . $url . '">';
-        foreach ( $pfdata as $k => $v )
-        {
-            $pfhtml .= '<input type="hidden" name="' . $k . '" value="' . $v . '" />';
-        }
-        $buttonValue = $button_image == 'light-small-subscribe.png' ? 'Subscribe Now' : 'Pay Now';
-        $pfhtml .= '<input type="image" align="centre" src="' . $params['systemurl'] . '/modules/gateways/payfast/images/' . $button_image . '" value="' . $buttonValue . '"></form>';
-        return $pfhtml;
-    }
-
     //Cleanup PayFast Tokens stored in tblhosting
     if ( empty( $pfToken ) )
     {
@@ -241,7 +240,7 @@ function PayFast_link( $params )
         'merchant_key' => $merchant_key,
         'return_url' => $returnUrl,
         'cancel_url' => $returnUrl,
-        'notify_url' => $systemUrl . 'modules/gateways/callback/payfast.php',
+        'notify_url' => rtrim( $systemUrl, '/' ) . '/modules/gateways/callback/payfast.php',
 
         // Buyer Details
         'name_first' => trim( $firstname ),
@@ -362,7 +361,7 @@ function PayFast_capture( $params )
 
     //Prevention of race condition on adhoc ITN check
     $payload['item_description'] = 'adhoc payment dc0521d355fe269bfa00b647310d760f';
-   
+
     $payload['m_payment_id'] = $invoiceId;
 
     $hashArray['version'] = 'v1';
