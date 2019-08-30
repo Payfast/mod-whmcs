@@ -212,7 +212,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     }
 
     // Checks transaction number isn't already in the database and ends processing if it does
-    checkCbTransID( $pfData['m_payment_id'] );
+    checkCbTransID( $pfData['pf_payment_id'] );
 
     /**
      * Add Invoice Payment.
@@ -227,7 +227,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
      */
     addInvoicePayment(
         $invoiceId,
-        $transactionId = $pfData['m_payment_id'],
+        $transactionId = $pfData['pf_payment_id'],
         $paymentAmount = $amountGross,
         $paymentFee = -1 * $amountFee,
         $gatewayModuleName
