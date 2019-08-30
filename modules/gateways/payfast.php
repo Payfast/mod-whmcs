@@ -383,7 +383,7 @@ function PayFast_capture( $params )
     $useragent = 'WHMCS';
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
     curl_setopt( $ch, CURLOPT_HEADER, false );
-    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
+    curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 2 );
     curl_setopt( $ch, CURLOPT_TIMEOUT, 60 );
     curl_setopt( $ch, CURLOPT_CUSTOMREQUEST, "POST" );
     curl_setopt( $ch, CURLOPT_POSTFIELDS, http_build_query( $payload ) );
@@ -411,7 +411,7 @@ function PayFast_capture( $params )
         // Data to be recorded in the gateway log - can be a string or array
         'rawdata' => ( empty( $response ) ? '' : $response ),
         // Unique Transaction ID for the capture transaction
-        'transid' => $invoiceId,
+        'transid' => ( ( $pfResponse->data->response == 'true' ) ? $pfResponse->data->pf_payment_id : '' ),
         // Optional fee amount for the fee value refunded
         //'fees' => $feeAmount,
     );
