@@ -143,12 +143,11 @@ if ( !$pfError )
  * @param string $transactionStatus  Status
  */
 
-pflog( 'Check status and update order' );
-
 $transactionStatus = 'Unsuccessful';
 
 if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
 {
+    pflog( 'Check status and update order' );
     $transactionStatus = 'Successful';
 
     // Convert currency if necessary
@@ -176,6 +175,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     if ( $pfData['item_description'] == 'adhoc payment dc0521d355fe269bfa00b647310d760f' )
     {
         pflog( "adhoc payment" );
+
         //Check invoice status
         $invStatus = Illuminate\Database\Capsule\Manager::table( 'tblinvoices' )
             ->where( 'id', $invoiceId )
@@ -263,6 +263,11 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
 }
 
 logTransaction( $gatewayParams['name'], $_POST, $transactionStatus );
+
+// If an error occurred
+if ($pfError) {
+    pflog('Error occurred: ' . $pfErrMsg);
+}
 
 // Close log
 pflog( '', true );
