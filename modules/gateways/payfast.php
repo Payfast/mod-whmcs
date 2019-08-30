@@ -27,7 +27,7 @@ function PayFast_MetaData()
     return array(
         'DisplayName' => 'PayFast',
         'APIVersion' => '1.1', // Use API Version 1.1
-        'DisableLocalCredtCardInput' => true,
+        'DisableLocalCreditCardInput' => true,
         'TokenisedStorage' => false, //  _storeremote takes CC details and returns token via gateway API
     );
 }
@@ -132,7 +132,7 @@ function PayFast_nolocalcc()
  *
  * @return string
  */
-function pf_create_button( $pfdata, $button_image, $url, $passphrase )
+function pf_create_button( $pfdata, $button_image, $url, $passphrase, $systemUrl )
 {
     // Create output string
     $pfOutput = '';
@@ -158,7 +158,7 @@ function pf_create_button( $pfdata, $button_image, $url, $passphrase )
         $pfhtml .= '<input type="hidden" name="' . $k . '" value="' . $v . '" />';
     }
     $buttonValue = $button_image == 'light-small-subscribe.png' ? 'Subscribe Now' : 'Pay Now';
-    $pfhtml .= '<input type="image" align="centre" src="' . $params['systemurl'] . '/modules/gateways/payfast/images/' . $button_image . '" value="' . $buttonValue . '"></form>';
+    $pfhtml .= '<input type="image" align="centre" src="' . $systemUrl . '/modules/gateways/payfast/images/' . $button_image . '" value="' . $buttonValue . '"></form>';
     return $pfhtml;
 }
 
@@ -210,7 +210,7 @@ function PayFast_link( $params )
 
     // System Parameters
     $companyName = $params['companyname'];
-    $systemUrl = $params['systemurl'];
+    $systemUrl = rtrim( $params['systemurl'], '/' ) ;
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleDisplayName = $params['name'];
@@ -240,7 +240,7 @@ function PayFast_link( $params )
         'merchant_key' => $merchant_key,
         'return_url' => $returnUrl,
         'cancel_url' => $returnUrl,
-        'notify_url' => rtrim( $systemUrl, '/' ) . '/modules/gateways/callback/payfast.php',
+        'notify_url' => $systemUrl . '/modules/gateways/callback/payfast.php',
 
         // Buyer Details
         'name_first' => trim( $firstname ),
@@ -252,7 +252,7 @@ function PayFast_link( $params )
         'amount' => number_format( $amount, 2, '.', '' ),
         'item_name' => $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'],
         'item_description' => $description,
-        'custom_str1' => 'PF_WHMCS_7.6_' . PF_MODULE_VER,
+        'custom_str1' => 'PF_WHMCS_'.substr($CONFIG['Version'],0,5). '_' . PF_MODULE_VER,
     );
 
     //Create PayFast button/s on Invoice
@@ -264,7 +264,7 @@ function PayFast_link( $params )
         if ( !$force_recurring )
         {
             //Create once-off button
-            $htmlOutput = pf_create_button( $data, $button_image, $url, $passphrase );
+            $htmlOutput = pf_create_button( $data, $button_image, $url, $passphrase, $systemUrl );
         }
 
         //Set button data to PayFast Subscription
@@ -272,7 +272,7 @@ function PayFast_link( $params )
         $button_image = 'light-small-subscribe.png';
     }
     //Append PayFast button
-    $htmlOutput .= pf_create_button( $data, $button_image, $url, $passphrase );
+    $htmlOutput .= pf_create_button( $data, $button_image, $url, $passphrase, $systemUrl );
 
     return $htmlOutput;
 }
@@ -327,7 +327,7 @@ function PayFast_capture( $params )
 
     // System Parameters
     $companyName = $params['companyname'];
-    $systemUrl = $params['systemurl'];
+    $systemUrl = rtrim( $params['systemurl'], '/' );
     $returnUrl = $params['returnurl'];
     $langPayNow = $params['langpaynow'];
     $moduleDisplayName = $params['name'];
