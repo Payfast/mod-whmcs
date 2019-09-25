@@ -154,7 +154,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     if ( $GATEWAY['convertto'] != '' && $pfData['custom_str2'] != 'ZAR' )
     {
         $currencies = Illuminate\Database\Capsule\Manager::table( 'tblcurrencies' )
-            ->where( 'code', $pfData['custom_str1'] )
+            ->where( 'code', $pfData['custom_str2'] )
             ->get();
 
         $amountGross = convertCurrency( $pfData['amount_gross'], $GATEWAY['convertto'], $currencies[0]->id );

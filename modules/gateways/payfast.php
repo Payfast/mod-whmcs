@@ -253,6 +253,7 @@ function PayFast_link( $params )
         'item_name' => $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'],
         'item_description' => $description,
         'custom_str1' => 'PF_WHMCS_'.substr($whmcsVersion,0,5). '_' . PF_MODULE_VER,
+        'custom_str2' => $currencyCode,
     );
 
     //Create PayFast button/s on Invoice
