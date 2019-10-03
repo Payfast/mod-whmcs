@@ -131,18 +131,6 @@ if ( !$pfError )
     }
 }
 
-/**
- * Log Transaction.
- *
- * Add an entry to the PayFast Log for debugging purposes.
- *
- * Check status and update order
- *
- * @param string $gatewayName        Display label
- * @param string|array $debugData    Data to log
- * @param string $transactionStatus  Status
- */
-
 $transactionStatus = 'Unsuccessful';
 
 if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
@@ -151,18 +139,18 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     $transactionStatus = 'Successful';
 
     // Convert currency if necessary
-    if ( $GATEWAY['convertto'] != '' && $pfData['custom_str2'] != 'ZAR' )
+    if ( $gatewayParams['convertto'] != '' && $pfData['custom_str2'] != 'ZAR' )
     {
         $currencies = Illuminate\Database\Capsule\Manager::table( 'tblcurrencies' )
             ->where( 'code', $pfData['custom_str2'] )
             ->get();
 
-        $amountGross = convertCurrency( $pfData['amount_gross'], $GATEWAY['convertto'], $currencies[0]->id );
-        $amountFee = convertCurrency( $pfData['amount_fee'], $GATEWAY['convertto'], $currencies[0]->id );
+        $amountGross = convertCurrency( $pfData['amount_gross'], $gatewayParams['convertto'], $currencies[0]->id );
+        $amountFee = convertCurrency( $pfData['amount_fee'], $gatewayParams['convertto'], $currencies[0]->id );
 
         pflog( 'amountGross: ' . $amountGross );
         pflog( 'amountFee: ' . $amountFee );
-        pflog( 'convertto: ' . $GATEWAY['convertto'] );
+        pflog( 'convertto: ' . $gatewayParams['convertto'] );
         pflog( 'currency: ' . $currencies[0]->id );
     }
     else
@@ -262,6 +250,17 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     }
 }
 
+/**
+ * Log Transaction.
+ *
+ * Add an entry to the PayFast Log for debugging purposes.
+ *
+ * Check status and update order
+ *
+ * @param string $gatewayName        Display label
+ * @param string|array $debugData    Data to log
+ * @param string $transactionStatus  Status
+ */
 logTransaction( $gatewayParams['name'], $_POST, $transactionStatus );
 
 // If an error occurred

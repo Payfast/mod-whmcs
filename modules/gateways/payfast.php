@@ -194,6 +194,7 @@ function PayFast_link( $params )
     $description = $params["description"];
     $amount = $params['amount'];
     $currencyCode = $params['currency'];
+    $baseCurrencyCode = $params['basecurrency'];
 
     // Client Parameters
     $firstname = $params['clientdetails']['firstname'];
@@ -253,7 +254,7 @@ function PayFast_link( $params )
         'item_name' => $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'],
         'item_description' => $description,
         'custom_str1' => 'PF_WHMCS_'.substr($whmcsVersion,0,5). '_' . PF_MODULE_VER,
-        'custom_str2' => $currencyCode,
+        'custom_str2' => $baseCurrencyCode,
     );
 
     //Create PayFast button/s on Invoice
