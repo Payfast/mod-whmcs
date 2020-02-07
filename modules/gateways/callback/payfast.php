@@ -18,6 +18,8 @@ require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
+App::load_function('gateway');
+App::load_function('invoice');
 // Detect module name from filename.
 $gatewayModuleName = basename( __FILE__, '.php' );
 
@@ -36,7 +38,7 @@ $pfParamString = '';
 
 pflog( 'PayFast ITN call received' );
 
-//// Notify PayFast that information has been received
+// Notify PayFast that information has been received
 if ( !$pfError )
 {
     header( 'HTTP/1.0 200 OK' );
@@ -49,7 +51,7 @@ if ( !$gatewayParams['type'] )
     die( "Module Not Activated" );
 }
 
-//// Retrieve data returned in PayFast callback
+// Retrieve data returned in PayFast callback
 if ( !$pfError )
 {
     pflog( 'Get posted data' );
@@ -74,7 +76,7 @@ if ( !$pfError )
 
 $invoiceId = substr( $pfData['item_name'], strpos( $pfData['item_name'], '#' ) + 1 );
 
-//// Verify security signature
+// Verify security signature
 if ( !$pfError )
 {
     pflog( 'Verify security signature' );
@@ -96,17 +98,18 @@ if ( !$pfError )
     }
 }
 
-//// Verify source IP
-if ( !$pfError )
-{
-    pflog( 'Verify source IP' );
+// This check has been removed due to the increasing popularity of cloud hosting.
+// Verify source IP is PayFast
+// if ( !$pfError )
+// {
+//     pflog( 'Verify source IP' );
 
-    if ( !pfValidIP( $_SERVER['REMOTE_ADDR'] ) )
-    {
-        $pfError = true;
-        $pfErrMsg = PF_ERR_BAD_SOURCE_IP;
-    }
-}
+//     if ( !pfValidIP( $_SERVER['REMOTE_ADDR'] ) )
+//     {
+//         $pfError = true;
+//         $pfErrMsg = PF_ERR_BAD_SOURCE_IP;
+//     }
+// }
 
 // Get internal order and verify it hasn't already been processed
 if ( !$pfError )
@@ -117,7 +120,7 @@ if ( !$pfError )
     //( ' this is the invoice id returned: ' . $whInvoiceID );
 }
 
-//// Verify data received
+// Verify data received
 if ( !$pfError )
 {
     pflog( 'Verify data received' );
@@ -131,16 +134,21 @@ if ( !$pfError )
     }
 }
 
+if(!(7.8 >= 7.9)){
+ echo "7.8 is smaller and not equal to than 7.9";
+}
+
 $transactionStatus = 'Unsuccessful';
 
 if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
 {
-    pflog( 'Check status and update order' );
+    pflog( 'Checking order' );
     $transactionStatus = 'Successful';
 
     // Convert currency if necessary
     if ( $gatewayParams['convertto'] != '' && $pfData['custom_str2'] != 'ZAR' )
     {
+        pflog( 'Converting currency' );
         $currencies = Illuminate\Database\Capsule\Manager::table( 'tblcurrencies' )
             ->where( 'code', $pfData['custom_str2'] )
             ->get();
@@ -160,7 +168,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
     }
 
     //Check if response is adhoc
-    if ( $pfData['item_description'] == 'adhoc payment dc0521d355fe269bfa00b647310d760f' )
+    if ( $pfData['item_description'] == 'tokenized-adhoc-payment-dc0521d355fe269bfa00b647310d760f' )
     {
         pflog( "adhoc payment" );
 
@@ -183,6 +191,7 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
 
         if ( $invStatus == 'Paid' )
         {
+            pflog( "Updating adhoc payment fees" );
             Illuminate\Database\Capsule\Manager::table( 'tblaccounts' )
                 ->where( 'amountin', $pfData['amount_gross'] )
                 ->where( 'invoiceid', $invoiceId )
@@ -191,10 +200,8 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
                         'fees' => abs( $pfData['amount_fee'] ),
                     ]
                 );
-            pflog( "Fees updated" );
             // Close log
             pflog( '', true );
-            return;
         }
         return;
     }
@@ -226,29 +233,60 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
         ->where( 'id', $invoiceId )
         ->value( 'userid' );
 
-    //Check if user has a token
-    $pf_token = Illuminate\Database\Capsule\Manager::table( 'tblclients' )
-        ->where( 'id', $user_id )
-        ->value( 'gatewayid' );
-
-    //Add token to db on adhoc subscription
-    if ( !empty( $pfData['token'] ) && empty( $pf_token ) )
+    //Add token on adhoc subscription
+    if ( !empty( $pfData['token'] ) && !empty($pfData['custom_str1']) )
     {
-        //Add tokenized Credit Card information.
-        $add_token = json_encode( Illuminate\Database\Capsule\Manager::table( 'tblclients' )
-                ->where( 'id', $user_id )
-                ->update(
-                    [
-                        'gatewayid' => $pfData['token'],
-                        'cardtype' => 'cc',
-                        //'cardlastfour' => $pfData['custom_str4'],
-                    ]
-                ) );
 
-        pflog( "Add new token : " . ( !empty( $add_token ) ? 'success' : 'failed' ) );
+        $token_added = false;
 
+        //Backwards compatibility check
+        if( preg_match('/PF_WHMCS_(.*?)\.\d_/', $pfData['custom_str1'], $whmcs_ver) == 1 
+            && !( floatval($whmcs_ver[1]) >= 7.9 ))
+        {
+
+            pflog( "Manually store token in database for backwards compatibility with WHMCS ".$whmcs_ver[1]);  
+            //Add token as tokenized Credit Card information on user profile.
+            $add_token = json_encode( Illuminate\Database\Capsule\Manager::table( 'tblclients' )
+                    ->where( 'id', $user_id )
+                    ->update(
+                        [
+                            'gatewayid' => $pfData['token'],
+                            'cardtype' => 'cc',
+                            //'cardlastfour' => $pfData['custom_str4'],
+                        ]
+                    ) );
+                    $token_added = !empty( $add_token );
+
+        }else{ 
+
+            pflog( "Store adhoc token as tokenized PayFast Pay Method" );  
+            //Add token as tokenized Credit Card for PayFast payment method on user profile.
+            try {
+                // Function available in WHMCS 7.9 and later    
+                $token_added = createCardPayMethod (
+                    $clientId = $user_id,
+                    $gatewayName = $gatewayModuleName,
+                    $cardNumber = "1234",
+                    $cardExpiryDate = date('my', strtotime('+20 years')), //mmyy
+                    $cardType = "cc",
+                    $cardStartDate = null,
+                    $cardIssueNumber = null,
+                    $remoteToken = $pfData['token'],
+                    $billingContactId = "billing",
+                    $description = "Tokenization"
+                );
+            }catch (Exception $e) {
+                // Log to gateway log as unsuccessful.
+                logTransaction($gatewayParams['paymentmethod'], $_REQUEST, $e->getMessage());
+                // Show failure message.
+                echo 'Add new token failed :'.$e;
+            }
+        }
+
+        pflog( "Add new token : " . ( $token_added ? 'success' : 'failed' ) );  
+
+        }
     }
-}
 
 /**
  * Log Transaction.

@@ -120,6 +120,53 @@ function PayFast_nolocalcc()
 }
 
 /**
+ * Remote input.
+ *
+ * Called when a pay method is requested to be created or a payment is
+ * being attempted.
+ *
+ * New pay methods can be created or added without a payment being due.
+ * In these scenarios, the amount parameter will be empty and the workflow
+ * should be to create a token without performing a charge.
+ *
+ * @param array $params Payment Gateway Module Parameters
+ *
+ * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
+ *
+ * @return array
+ */
+function PayFast_remoteinput($params)
+{
+    return "<div class=\"alert alert-info\">A new card can only be added when paying an invoice. </p>";
+}
+
+/**
+ * Remote update.
+ *
+ * Called when a pay method is requested to be updated.
+ *
+ * The expected return of this function is direct HTML output. It provides
+ * more flexibility than the remote input function by not restricting the
+ * return to a form that is posted into an iframe. We still recommend using
+ * an iframe where possible and this sample demonstrates use of an iframe,
+ * but the update can sometimes be handled by way of a modal, popup or
+ * other such facility.
+ *
+ * @param array $params Payment Gateway Module Parameters
+ *
+ * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
+ *
+ * @return array
+ */
+function PayFast_remoteupdate($params)
+{
+    if (!$params["gatewayid"]) {
+        return "<p align=\"center\">You must pay your first invoice via credit card before you can view details here...</p>";
+    }
+    return;
+}
+
+/**
  * Creates payment button redirects to PayFast.
  *
  * Nested function used inside PayFast_link only.
@@ -253,7 +300,7 @@ function PayFast_link( $params )
         'amount' => number_format( $amount, 2, '.', '' ),
         'item_name' => $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'],
         'item_description' => $description,
-        'custom_str1' => 'PF_WHMCS_'.substr($whmcsVersion,0,5). '_' . PF_MODULE_VER,
+        'custom_str1' => 'PF_WHMCS_'.substr($whmcsVersion,0,5). '_' . PF_MODULE_VER, 
         'custom_str2' => $baseCurrencyCode,
     );
 
@@ -362,7 +409,7 @@ function PayFast_capture( $params )
     $payload['item_name'] = $params['companyname'] . ' purchase, Invoice ID #' . $params['invoiceid'];
 
     //Prevention of race condition on adhoc ITN check
-    $payload['item_description'] = 'adhoc payment dc0521d355fe269bfa00b647310d760f';
+    $payload['item_description'] = 'tokenized-adhoc-payment-dc0521d355fe269bfa00b647310d760f';
 
     $payload['m_payment_id'] = $invoiceId;
 
@@ -382,7 +429,6 @@ function PayFast_capture( $params )
 
     // configure curl
     $ch = curl_init( $url );
-    $useragent = 'WHMCS';
     curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
     curl_setopt( $ch, CURLOPT_HEADER, false );
     curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, 2 );
