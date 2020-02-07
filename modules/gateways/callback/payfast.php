@@ -134,10 +134,6 @@ if ( !$pfError )
     }
 }
 
-if(!(7.8 >= 7.9)){
- echo "7.8 is smaller and not equal to than 7.9";
-}
-
 $transactionStatus = 'Unsuccessful';
 
 if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
