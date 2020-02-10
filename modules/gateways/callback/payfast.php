@@ -18,6 +18,11 @@ require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
 require_once __DIR__ . '/../../../includes/invoicefunctions.php';
 
+// getCCVariables is required for email to clients within addInvoicePayment call
+ if (!function_exists('getCCVariables')) {
+     require_once __DIR__ . '/../../../includes/ccfunctions.php';
+ }
+
 App::load_function('gateway');
 App::load_function('invoice');
 // Detect module name from filename.
