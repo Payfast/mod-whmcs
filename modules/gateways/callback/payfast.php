@@ -86,13 +86,16 @@ if ( !$pfError )
 {
     pflog( 'Verify security signature' );
 
-    if ( empty( $gatewayParams['passphrase'] ) )
-    {
-        $passphrase = null;
-    }
-    else
+    $passphrase = null;
+
+    if ( !empty( $gatewayParams['passphrase'] ) )
     {
         $passphrase = $gatewayParams['passphrase'];
+    }
+
+    if($gatewayParams['test_mode'] == 'on' && empty( $gatewayParams['merchant_id'] ) )
+    {
+        $passphrase = 'payfast';
     }
 
     // If signature different, log for debugging
