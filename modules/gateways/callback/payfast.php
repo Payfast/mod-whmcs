@@ -11,7 +11,7 @@
 
 //Prevention of race condition
 //PayFast waits up to 20 seconds for a response
-define( 'SECONDS_TO_WAIT_FOR_ADHOC_RESPONSE', 5 );
+define( 'SECONDS_TO_WAIT_FOR_ADHOC_RESPONSE', 10 );
 
 // Require libraries needed for gateway module functions.
 require_once __DIR__ . '/../../../init.php';
@@ -244,11 +244,11 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
         $token_added = false;
 
         //Backwards compatibility check
-        if( preg_match('/PF_WHMCS_(.*?)\.\d_/', $pfData['custom_str1'], $whmcs_ver) == 1 
+        if( preg_match('/PF_WHMCS_(.*?)\.\d_/', $pfData['custom_str1'], $whmcs_ver) == 1
             && !( floatval($whmcs_ver[1]) >= 7.9 ))
         {
 
-            pflog( "Manually store token in database for backwards compatibility with WHMCS ".$whmcs_ver[1]);  
+            pflog( "Manually store token in database for backwards compatibility with WHMCS ".$whmcs_ver[1]);
             //Add token as tokenized Credit Card information on user profile.
             $add_token = json_encode( Illuminate\Database\Capsule\Manager::table( 'tblclients' )
                     ->where( 'id', $user_id )
@@ -261,12 +261,12 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
                     ) );
                     $token_added = !empty( $add_token );
 
-        }else{ 
+        }else{
 
-            pflog( "Store adhoc token as tokenized PayFast Pay Method" );  
+            pflog( "Store adhoc token as tokenized PayFast Pay Method" );
             //Add token as tokenized Credit Card for PayFast payment method on user profile.
             try {
-                // Function available in WHMCS 7.9 and later    
+                // Function available in WHMCS 7.9 and later
                 $token_added = createCardPayMethod (
                     $clientId = $user_id,
                     $gatewayName = $gatewayModuleName,
@@ -281,13 +281,14 @@ if ( $pfData['payment_status'] == "COMPLETE" && !$pfError )
                 );
             }catch (Exception $e) {
                 // Log to gateway log as unsuccessful.
+                pflog('Add new token failed : '.$e->getMessage());
                 logTransaction($gatewayParams['paymentmethod'], $_REQUEST, $e->getMessage());
                 // Show failure message.
                 echo 'Add new token failed :'.$e;
             }
         }
 
-        pflog( "Add new token : " . ( $token_added ? 'success' : 'failed' ) );  
+        pflog( "Add new token : " . ( $token_added ? 'success' : 'failed' ) );
 
         }
     }

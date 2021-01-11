@@ -17,7 +17,7 @@ global $CONFIG;
 define( 'PF_SOFTWARE_NAME', 'WHMCS' );
 define( 'PF_SOFTWARE_VER', $CONFIG['Version'] );
 define( 'PF_MODULE_NAME', 'PayFast-WHMCS' );
-define( 'PF_MODULE_VER', '2.2.1' );
+define( 'PF_MODULE_VER', '2.2.2' );
 
 // Fetch gateway configuration parameters.
 $gatewayParams = getGatewayVariables( 'payfast' );

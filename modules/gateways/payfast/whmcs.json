@@ -1,0 +1,30 @@
+{
+  "schema": "1.0",
+  "type": "whmcs-gateways",
+  "name": "payfast",
+  "license": "proprietary",
+  "category": "payments",
+  "description": {
+    "name": "PayFast",
+    "tagline": "South Africa’s leading payment gateway.",
+    "long": "Experience fast and secure online payments with South Africa’s leading payment gateway.\n\nPayFast is a leading online payment processing solution for individuals, non-profit organisations (NPOs) and businesses of all sizes in South Africa. The PayFast integration with WHMCS enables your customers to settle invoices immediately and conveniently using one of PayFast’s supported payment options.",
+    "features": [
+      "Accept a variety of payment methods, including credit, cheque and debit cards, Instant EFT, Masterpass, Scode, Mobicred and more",
+      "Automatic recurring tokenized billing and subscriptions",
+      "Professional billing and invoices"
+    ]
+  },
+  "logo": {
+    "filename": "images/logo.png"
+  },
+  "support": {
+    "homepage": "https:\/\/www.payfast.co.za\/",
+    "docs_url": "https:\/\/www.payfast.co.za\/integration\/shopping-carts\/whmcs"
+  },
+  "authors": [
+    {
+      "name": "PayFast",
+      "homepage": "https:\/\/www.payfast.co.za\/"
+    }
+  ]
+}

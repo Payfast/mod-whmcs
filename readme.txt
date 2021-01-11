@@ -1,4 +1,4 @@
-PayFast WHMCS Module for WHMCS v7.10.2 
+PayFast WHMCS Module for WHMCS v7.10.2-v8.1.0
 ----------------------------------------------------------------------------------------------------------
 Copyright (c) 2008 PayFast (Pty) Ltd
 You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin / code in your own website in conjunction with a registered and active PayFast account. If your PayFast account is terminated for any reason, you may not use this plugin / code or part thereof.
@@ -25,9 +25,9 @@ If you already have subscriptions setup on your WHMCS site with PayFast module v
 On Your PayFast Account
 1. Log in to your PayFast account and navigate to settings->integration.
 2. Click on 'Enable' or 'Edit' next to Recurring Billing and enable Ad Hoc payments (once setup, WHMCS subscriptions will be found under 'Ad Hoc Agreements' on your PayFast account).
-On your admin dashboard of your WHMCS site 
+On your admin dashboard of your WHMCS site
 3. Log into the admin dashboard of your WHMCS site and navigate to the PayFast configuration page as before
-4. Select 'Enable recurring billing'. This will enable the option for clients to subscribe. 
+4. Select 'Enable recurring billing'. This will enable the option for clients to subscribe.
 5. Optionally select 'Force recurring billing' which will force clients to subscribe to adhoc subscriptions.
 6. (Optional if 'Force recurring billing' is selected)Turn off Auto Redirect on Checkout under Setup -> General Settings -> Ordering "Auto Redirect on Checkout" to automatically take the user to the invoice. This setting is required to allow clients the option to pay subscription invoices once off or to subscribe to  tokenized billing(adhoc).
 7. Once the subscription has been setup it can be managed on the client profile page, under the products/services tab on your WHMCS site admin dashboard.
