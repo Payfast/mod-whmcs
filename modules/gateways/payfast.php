@@ -183,7 +183,7 @@ function Payfast_remoteupdate($params)
  *
  * @return string
  */
-function pf_create_button($pfdata, $button_image, $url, $passphrase, $systemUrl)
+function pf_create_button($pfdata, $isRecurring, $url, $passphrase, $systemUrl)
 {
     // Create output string
     $pfOutput = '';
@@ -203,7 +203,7 @@ function pf_create_button($pfdata, $button_image, $url, $passphrase, $systemUrl)
     foreach ($pfdata as $k => $v) {
         $pfhtml .= '<input type="hidden" name="' . $k . '" value="' . $v . '" />';
     }
-    $buttonValue = $button_image == 'light-small-subscribe.png' ? 'Subscribe Using Payfast' : 'Pay Using Payfast';
+    $buttonValue = $isRecurring ? 'Subscribe Using Payfast' : 'Pay Using Payfast';
     $pfhtml      .= '<input type="submit" value="' . $buttonValue . '"/></form>';
 
     return $pfhtml;
@@ -226,8 +226,6 @@ function pf_create_button($pfdata, $button_image, $url, $passphrase, $systemUrl)
 function Payfast_link($params)
 {
     require_once 'payfast/payfast_common.php';
-
-    pfGatewayLog('Payfast Request: ' . json_encode($params));
 
     // Payfast Configuration Parameters
     $merchant_id      = $params['merchant_id'];
@@ -306,20 +304,20 @@ function Payfast_link($params)
 
     //Create Payfast button/s on Invoice
     $htmlOutput   = '';
-    $button_image = 'light-small-paynow.png';
+    $isRecurring = false;
 
     if ($enable_recurring && empty($pfToken)) {
         if (!$force_recurring) {
             //Create once-off button
-            $htmlOutput = pf_create_button($data, $button_image, $url, $passphrase, $systemUrl);
+            $htmlOutput = pf_create_button($data, false, $url, $passphrase, $systemUrl);
         }
 
         //Set button data to Payfast Subscription
         $data['subscription_type'] = 2;
-        $button_image              = 'light-small-subscribe.png';
+        $isRecurring               = true;
     }
     //Append Payfast button
-    $htmlOutput .= pf_create_button($data, $button_image, $url, $passphrase, $systemUrl);
+    $htmlOutput .= pf_create_button($data, $isRecurring, $url, $passphrase, $systemUrl);
 
     return $htmlOutput;
 }

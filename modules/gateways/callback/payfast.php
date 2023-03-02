@@ -45,7 +45,6 @@ $pfOrderId     = '';
 $pfParamString = '';
 
 pflog('Payfast ITN call received');
-pfGatewayLog('Payfast ITN call received');
 
 // Notify Payfast that information has been received
 if (!$pfError) {
@@ -61,13 +60,11 @@ if (!$gatewayParams['type']) {
 // Retrieve data returned in Payfast callback
 if (!$pfError) {
     pflog('Get posted data');
-    pfGatewayLog('Get posted data');
 
     // Posted variables from ITN
     $pfData = pfGetData();
 
     pflog('Payfast Data: ' . print_r($pfData, true));
-    pfGatewayLog('Payfast Data: ' . print_r($pfData, true));
 
     if ($pfData === false) {
         $pfError  = true;
