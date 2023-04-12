@@ -1,0 +1,5 @@
+{
+    "require": {
+        "payfast/payfast-common": "^1.0"
+    }
+}
