@@ -453,7 +453,7 @@ class PayfastCommon
      */
     public static function createTransaction($payArray, $passphrase = null, bool $testMode = false): void
     {
-        $sandboxURL = $testMode ? 'https://sandbox.payfast.co.za/eng/process' : 'https://payfast.co.za/eng/process';
+        $url = $testMode ? 'https://sandbox.payfast.co.za/eng/process' : 'https://www.payfast.co.za/eng/process';
 
         $secureString = '';
         foreach ($payArray as $k => $v) {
@@ -477,7 +477,7 @@ class PayfastCommon
         echo <<<EOT
     <html lang="en">
     <body onLoad="document.payfast_form.submit();">
-        <form action="$sandboxURL" method="post" name="payfast_form">
+        <form action="$url" method="post" name="payfast_form">
             $inputs
         </form>
     </body>
