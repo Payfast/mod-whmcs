@@ -48,7 +48,7 @@ $pfHost        = (($gatewayParams['test_mode'] == 'on') ? 'sandbox' : 'www') . '
 $pfOrderId     = '';
 $pfParamString = '';
 
-PayfastCommon::pfValidData('Payfast ITN call received');
+PayfastCommon::pflog('Payfast ITN call received');
 
 // Notify Payfast that information has been received
 header('HTTP/1.0 200 OK');
