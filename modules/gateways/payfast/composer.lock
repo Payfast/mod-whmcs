@@ -8,7 +8,7 @@
     "packages": [
         {
             "name": "payfast/payfast-common",
-            "version": "v1.0.0",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PayFast/payfast-common.git",
@@ -43,7 +43,7 @@
             "homepage": "https://github.com/PayFast/payfast-common",
             "support": {
                 "issues": "https://github.com/PayFast/payfast-common/issues",
-                "source": "https://github.com/PayFast/payfast-common/tree/v1.0.0"
+                "source": "https://github.com/PayFast/payfast-common/tree/v1.0.1"
             },
             "time": "2023-04-12T08:04:49+00:00"
         }

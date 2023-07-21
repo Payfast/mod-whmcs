@@ -39,7 +39,7 @@ function Payfast_MetaData(): array
     define('PF_SOFTWARE_VER', $CONFIG['Version']);
 
     define("PF_MODULE_NAME", 'Payfast-WHMCS');
-    define("PF_MODULE_VER", '2.2.5');
+    define("PF_MODULE_VER", '2.2.6');
 
     return array(
         'DisplayName'                 => 'Payfast',

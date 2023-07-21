@@ -175,7 +175,11 @@ class PayfastCommon
                 if ($fh) {
                     $line = date('Y-m-d H:i:s') . ' : ' . $msg . "\n";
 
-                    fwrite($fh, $line);
+                    try {
+                        fwrite($fh, $line);
+                    } catch (\Exception $e) {
+                        error_log($e, 0);
+                    }
                 }
             }
         }
