@@ -154,9 +154,9 @@ function Payfast_nolocalcc(): void
  * @return array|string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
  */
-function Payfast_remoteinput(): array|string
+function Payfast_remoteinput(): string
 {
-    return "<div class=\"alert alert-info\">A new card can only be added when paying an invoice. </p>";
+    return "<div class=\"alert alert-info\">A new card can only be added when paying an invoice. </div>";
 }
 
 /**
@@ -177,11 +177,10 @@ function Payfast_remoteinput(): array|string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
  *
  */
-function Payfast_remoteupdate($params): array|string
+function Payfast_remoteupdate($params): string
 {
     if (!$params["gatewayid"]) {
-        return "<p align=\"center\">You must pay your first invoice via credit
- card before you can view details here...</p>";
+        return "<p align=\"center\">You must pay your first invoice via credit card before you can view details here...</p>";
     }
 
     return "";
