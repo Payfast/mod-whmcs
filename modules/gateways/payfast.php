@@ -6,8 +6,8 @@ use Payfast\PayfastCommon\PayfastCommon;
 /**
  * payfast.php
  *
- * Copyright (c) 2023 PayFast (Pty) Ltd
- * You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin /
+ * Copyright (c) 2024 Payfast (Pty) Ltd
+ * You (being anyone who is not Payfast (Pty) Ltd) may download and use this plugin /
  * code in your own website in conjunction with a registered and active Payfast account.
  * If your Payfast account is terminated for any reason, you may not use this plugin / code or part thereof.
  * Except as expressly indicated in this licence, you may not use, copy, modify or distribute this plugin /
@@ -39,7 +39,7 @@ function Payfast_MetaData(): array
     define('PF_SOFTWARE_VER', $CONFIG['Version']);
 
     define("PF_MODULE_NAME", 'Payfast-WHMCS');
-    define("PF_MODULE_VER", '2.2.6');
+    define("PF_MODULE_VER", '2.2.7');
 
     return array(
         'DisplayName'                 => 'Payfast',
@@ -119,6 +119,13 @@ function Payfast_config(): array
             'Description'  => 'Check to force all clients to use tokenized billing(adhoc subscriptions).
              This requires "Enable Recurring Billing" to be enabled to take effect.',
         ),
+        'adhoc_timer'  => array(
+            'FriendlyName' => 'ADHOC Payment Wait Time',
+            'Type'         => 'dropdown',
+            "Options"      => "10,15,20,25,30",
+            'Default'      => '15',
+            'Description'  => 'Set the timeout for tokenized payments to update the Transaction Fees column.',
+        ),
         // Sandbox option
         'test_mode'        => array(
             'FriendlyName' => 'Sandbox Test Mode',
@@ -154,9 +161,9 @@ function Payfast_nolocalcc(): void
  * @return array|string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
  */
-function Payfast_remoteinput(): array|string
+function Payfast_remoteinput(): string
 {
-    return "<div class=\"alert alert-info\">A new card can only be added when paying an invoice. </p>";
+    return "<div class=\"alert alert-info\">A new card can only be added when paying an invoice. </div>";
 }
 
 /**
@@ -177,11 +184,10 @@ function Payfast_remoteinput(): array|string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
  *
  */
-function Payfast_remoteupdate($params): array|string
+function Payfast_remoteupdate($params): string
 {
     if (!$params["gatewayid"]) {
-        return "<p align=\"center\">You must pay your first invoice via credit
- card before you can view details here...</p>";
+        return "<p align=\"center\">You must pay your first invoice via credit card before you can view details here...</p>";
     }
 
     return "";
