@@ -1,5 +1,7 @@
+# mod-whmcs
+
 Payfast WHMCS Module for WHMCS v8.6.1
-----------------------------------------------------------------------------------------------------------
+
 Copyright (c) 2023 PayFast (Pty) Ltd
 You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin / code in your own website in conjunction with a registered and active Payfast account. If your Payfast account is terminated for any reason, you may not use this plugin / code or part thereof.
 Except as expressly indicated in this licence, you may not use, copy, modify or distribute this plugin / code or part thereof in any way.
@@ -43,10 +45,4 @@ In order to make the module “LIVE”, follow the instructions below:
 3. Under the “Payfast” heading, uncheck the “Test Mode” item
 4. Click “Save Changes”
 
-******************************************************************************
-*                                                                            *
-*    Please see the URL below for all information concerning this module:    *
-*                                                                            *
-*                     https://payfast.io/integration/shopping-carts/whmcs/   *
-*                                                                            *
-******************************************************************************
+Please [click here](https://payfast.io/integration/shopping-carts/whmcs/) more information concerning this module.
