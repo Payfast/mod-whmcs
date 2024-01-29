@@ -1,14 +1,10 @@
 # mod-whmcs
 
-Payfast WHMCS Module for WHMCS v8.6.1
+## Payfast WHMCS Module for WHMCS v8.8.0
 
-Copyright (c) 2023 PayFast (Pty) Ltd
-You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin / code in your own website in conjunction with a registered and active Payfast account. If your Payfast account is terminated for any reason, you may not use this plugin / code or part thereof.
-Except as expressly indicated in this licence, you may not use, copy, modify or distribute this plugin / code or part thereof in any way.
+This is the Payfast module for WHMCS. Please feel free to [contact the Payfast support team](https://payfast.io/contact/) should you require any assistance.
 
-Please note that PHP 8.0+ is required to run this module.
-
-INTEGRATION:
+## Installation
 1. Unzip the module to a temporary location on your computer.
 2. Copy the “modules” folder from the archive to your base “whmcs” folder (using FTP program or similar)
 - This should NOT overwrite any existing files or folders and merely supplement them with the Payfast files.
@@ -30,7 +26,7 @@ If you already have subscriptions setup on your WHMCS site with Payfast module v
 On Your Payfast Account
 1. Log in to your Payfast account and navigate to settings->integration.
 2. Click on 'Enable' or 'Edit' next to Recurring Billing and enable Ad Hoc payments (once setup, WHMCS subscriptions will be found under 'Ad Hoc Agreements' on your Payfast account).
-On your admin dashboard of your WHMCS site
+   On your admin dashboard of your WHMCS site
 3. Log into the admin dashboard of your WHMCS site and navigate to the Payfast configuration page as before
 4. Select 'Enable recurring billing'. This will enable the option for clients to subscribe.
 5. Optionally select 'Force recurring billing' which will force clients to subscribe to adhoc subscriptions.
@@ -46,3 +42,7 @@ In order to make the module “LIVE”, follow the instructions below:
 4. Click “Save Changes”
 
 Please [click here](https://payfast.io/integration/shopping-carts/whmcs/) more information concerning this module.
+
+## Collaboration
+
+Please submit pull requests with any tweaks, features or fixes you would like to share.

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2023 PayFast (Pty) Ltd
+ * Copyright (c) 2024 PayFast (Pty) Ltd
  * You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin / code in your own website in
  * conjunction with a registered and active Payfast account. If your Payfast account is terminated for any reason,
  * you may not use this plugin / code or part thereof. Except as expressly indicated in this licence, you may not use,
@@ -38,8 +38,8 @@ class PayfastCommon
     public const PF_MSG_OK      = 'Payment was successful';
     public const PF_MSG_FAILED  = 'Payment has failed';
     public const PF_MSG_PENDING = 'The payment is pending. Please note, you will receive another Instant' .
-    ' Transaction Notification when the payment status changes to' .
-    ' "Completed", or "Failed"';
+                                  ' Transaction Notification when the payment status changes to' .
+                                  ' "Completed", or "Failed"';
 
     /**
      * pfValidData
@@ -48,10 +48,6 @@ class PayfastCommon
      * @param $pfParamString String
      *
      * @return bool
-     * @noinspection PhpUndefinedConstantInspection
-     * @noinspection PhpUndefinedConstantInspection
-     * @noinspection PhpUndefinedConstantInspection
-     * @noinspection PhpUndefinedConstantInspection
      */
     public static function pfValidData(string $pfHost = 'www.payfast.co.za', string $pfParamString = ''): bool
     {
@@ -142,9 +138,9 @@ class PayfastCommon
         $verifyResult = trim($lines[0]);
 
         if (strcasecmp($verifyResult, 'VALID') == 0) {
-            return (true);
+            return true;
         } else {
-            return (false);
+            return false;
         }
     }
 
@@ -178,7 +174,7 @@ class PayfastCommon
                     try {
                         fwrite($fh, $line);
                     } catch (\Exception $e) {
-                        error_log($e, 0);
+                        error_log($e);
                     }
                 }
             }
@@ -202,9 +198,9 @@ class PayfastCommon
 
         // Return "false" if no data was received
         if (empty($pfData)) {
-            return (false);
+            return false;
         } else {
-            return ($pfData);
+            return $pfData;
         }
     }
 
@@ -223,7 +219,7 @@ class PayfastCommon
 
         $pfParamString = substr($pfParamString, 0, -1);
 
-        if (!is_null($pfPassphrase)) {
+        if (!empty($pfPassphrase)) {
             $pfParamStringWithPassphrase = $pfParamString . "&passphrase=" . urlencode($pfPassphrase);
             $signature                   = md5($pfParamStringWithPassphrase);
         } else {
@@ -234,7 +230,7 @@ class PayfastCommon
 
         self::pflog('Signature = ' . ($result ? 'valid' : 'invalid'));
 
-        return ($result);
+        return $result;
     }
 
 
@@ -269,9 +265,9 @@ class PayfastCommon
         self::pflog("Valid IPs:\n" . print_r($validIps, true));
 
         if (in_array($sourceIP, $validIps)) {
-            return (true);
+            return true;
         } else {
-            return (false);
+            return false;
         }
     }
 
@@ -282,7 +278,7 @@ class PayfastCommon
      * point comparison with an Epsilon which ensures that insignificant decimal
      * places are ignored in the comparison.
      *
-     * eg. 100.00 is equal to 100.0001
+     * e.g. 100.00 is equal to 100.0001
      *
      * @param $amount1 Float 1st amount for comparison
      * @param $amount2 Float 2nd amount for comparison
@@ -290,16 +286,18 @@ class PayfastCommon
     public static function pfAmountsEqual(float $amount1, float $amount2): bool
     {
         if (abs(floatval($amount1) - floatval($amount2)) > self::PF_EPSILON) {
-            return (false);
+            return false;
         } else {
-            return (true);
+            return true;
         }
     }
 
     /**
      * Generate signature for API
+     *
      * @param array $pfData (all the header, body and query string param values to be sent to the API)
      * @param null $passPhrase
+     *
      * @return string
      */
     public static function generateApiSignature(array $pfData, $passPhrase = null): string
@@ -313,17 +311,20 @@ class PayfastCommon
 
         //create parameter string
         $pfParamString = http_build_query($pfData);
+
         return md5($pfParamString);
     }
 
     /**
      * The Subscription Payments API gives Merchants the ability to interact with subscriptions on their accounts.
+     *
      * @param $merchantID
      * @param $token
      * @param $action
      * @param array $data
      * @param $passphrase
      * @param bool $testMode
+     *
      * @return string
      */
     public static function subscriptionAction(
@@ -334,7 +335,6 @@ class PayfastCommon
         $passphrase = null,
         bool $testMode = false
     ): string {
-
         $url = "https://api.payfast.co.za/subscriptions/$token/$action";
 
         if ($testMode) {
@@ -354,16 +354,18 @@ class PayfastCommon
 
     /**
      * The Refunds API provides Merchants with the ability to process refunds to their buyers.
+     *
      * @param $merchantID
      * @param $passphrase
      * @param $paymentID
      * @param $action
      * @param array $data
+     *
      * @return string
      */
-    public static function refundAction($merchantID, $passphrase, $paymentID, $action, array $data = []): string {
-
-        $url = "https://api.payfast.co.za/refunds/";
+    public static function refundAction($merchantID, $passphrase, $paymentID, $action, array $data = []): string
+    {
+        $url    = "https://api.payfast.co.za/refunds/";
         $method = "GET";
 
         if ($action === "query") {
@@ -379,8 +381,10 @@ class PayfastCommon
 
     /**
      * Test API
+     *
      * @param $merchantID
      * @param null $passphrase
+     *
      * @return string
      */
     public static function pingPayfast($merchantID, $passphrase = null): string
@@ -392,22 +396,24 @@ class PayfastCommon
 
     /**
      * Reusable Curl Request
+     *
      * @param $url
      * @param $merchantID
      * @param null $passphrase
      * @param array $body
      * @param null $method
+     *
      * @return string
      */
     public static function placeRequest($url, $merchantID, $passphrase = null, array $body = [], $method = null): string
     {
-        $date = date("Y-m-d");
-        $time = date("H:i:s");
+        $date      = date("Y-m-d");
+        $time      = date("H:i:s");
         $timeStamp = $date . "T" . $time;
-        $pfData = [
+        $pfData    = [
             "merchant-id" => $merchantID,
-            "timestamp" => $timeStamp,
-            "version" => "v1",
+            "timestamp"   => $timeStamp,
+            "version"     => "v1",
         ];
 
         $pfData = array_merge($pfData, $body);
@@ -421,15 +427,15 @@ class PayfastCommon
             "signature: $signature",
         ];
 
-        $ch = curl_init();
+        $ch         = curl_init();
         $curlConfig = array(
-            CURLOPT_URL => $url,
-            CURLOPT_HTTPHEADER => $headers,
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
         );
 
         if (!empty($body)) {
-            $curlConfig[CURLOPT_POST] = 1;
+            $curlConfig[CURLOPT_POST]       = 1;
             $curlConfig[CURLOPT_POSTFIELDS] = http_build_query($body);
         }
 
@@ -450,9 +456,11 @@ class PayfastCommon
     /**
      * Build a checkout form and receive payments securely from our payment platform.
      * This process can be used for both one-time and recurring payments.
+     *
      * @param $payArray
      * @param null $passphrase
      * @param bool $testMode
+     *
      * @return void
      */
     public static function createTransaction($payArray, $passphrase = null, bool $testMode = false): void
@@ -461,11 +469,11 @@ class PayfastCommon
 
         $secureString = '';
         foreach ($payArray as $k => $v) {
-            $secureString .= $k.'='.urlencode(trim($v)).'&';
+            $secureString .= $k . '=' . urlencode(trim($v)) . '&';
         }
 
         if (!empty($passphrase)) {
-            $secureString .= 'passphrase='.urlencode($passphrase);
+            $secureString .= 'passphrase=' . urlencode($passphrase);
         } else {
             $secureString = substr($secureString, 0, -1);
         }
@@ -473,7 +481,7 @@ class PayfastCommon
         $securityHash = md5($secureString);
 
         $payArray['signature'] = $securityHash;
-        $inputs = '';
+        $inputs                = '';
         foreach ($payArray as $k => $v) {
             $inputs .= '<input type="hidden" name="' . $k . '" value="' . $v . '"/>';
         }

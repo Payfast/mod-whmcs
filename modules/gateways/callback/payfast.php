@@ -3,18 +3,14 @@
  *
  * Payfast Callback File
  *
- * Copyright (c) 2023 PayFast (Pty) Ltd
- * You (being anyone who is not PayFast (Pty) Ltd) may download and use this plugin /
+ * Copyright (c) 2024 Payfast (Pty) Ltd
+ * You (being anyone who is not Payfast (Pty) Ltd) may download and use this plugin /
  * code in your own website in conjunction with a registered and active Payfast account.
  * If your Payfast account is terminated for any reason, you may not use this plugin / code or part thereof.
  * Except as expressly indicated in this licence, you may not use, copy, modify or distribute this plugin /
  * code or part thereof in any way.
  *
  */
-
-//Prevention of race condition
-//Payfast waits up to 20 seconds for a response
-const SECONDS_TO_WAIT_FOR_ADHOC_RESPONSE = 10;
 
 // Require libraries needed for gateway module functions.
 require_once __DIR__ . '/../../../init.php';
@@ -156,8 +152,11 @@ if ($pfData['payment_status'] == "COMPLETE" && !$pfError) {
 
         //Prevention of race condition
         if ($invStatus != 'Paid') {
-            PayfastCommon::pflog("Waiting " . SECONDS_TO_WAIT_FOR_ADHOC_RESPONSE . " seconds for adhoc response ");
-            sleep(SECONDS_TO_WAIT_FOR_ADHOC_RESPONSE);
+
+            $adhocWaitTime = (int)$gatewayParams['adhoc_timer'];
+
+            PayfastCommon::pflog("Waiting " . $adhocWaitTime . " seconds for adhoc response ");
+            sleep($adhocWaitTime);
             $invStatus = Illuminate\Database\Capsule\Manager::table('tblinvoices')
                                                             ->where('id', $invoiceId)
                                                             ->value('status');
