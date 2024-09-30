@@ -39,7 +39,7 @@ function Payfast_MetaData(): array
     define('PF_SOFTWARE_VER', $CONFIG['Version']);
 
     define("PF_MODULE_NAME", 'Payfast-WHMCS');
-    define("PF_MODULE_VER", '2.2.7');
+    define("PF_MODULE_VER", '2.3.0');
 
     return array(
         'DisplayName'                 => 'Payfast',
@@ -158,7 +158,7 @@ function Payfast_nolocalcc(): void
  * In these scenarios, the amount parameter will be empty and the workflow
  * should be to create a token without performing a charge.
  *
- * @return array|string
+ * @return string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
  */
 function Payfast_remoteinput(): string
@@ -180,11 +180,10 @@ function Payfast_remoteinput(): string
  *
  * @param array $params Payment Gateway Module Parameters
  *
- * @return array
+ * @return string
  * @see https://developers.whmcs.com/payment-gateways/remote-input-gateway/
- *
  */
-function Payfast_remoteupdate($params): string
+function Payfast_remoteupdate(array $params): string
 {
     if (!$params["gatewayid"]) {
         return "<p align=\"center\">You must pay your first invoice via credit card before you can view details here...</p>";
@@ -199,14 +198,13 @@ function Payfast_remoteupdate($params): string
  * Nested function used inside Payfast_link only.
  *
  * @param array $pfData Payment Parameters
- *
- * @param string $buttonImage Button Image Name
- *
+ * @param bool $isRecurring
  * @param string $url Payfast URL To Post To
+ * @param string $passphrase
  *
  * @return string
  */
-function pf_create_button(array $pfData, bool $isRecurring, string $url, $passphrase): string
+function pf_create_button(array $pfData, bool $isRecurring, string $url, string $passphrase): string
 {
     // Create output string
     $pfOutput = '';
@@ -246,7 +244,7 @@ function pf_create_button(array $pfData, bool $isRecurring, string $url, $passph
  * @see https://developers.whmcs.com/payment-gateways/third-party-gateway/
  *
  */
-function Payfast_link($params): string
+function Payfast_link(array $params): string
 {
     // Payfast Configuration Parameters
     $merchantId      = $params['merchant_id'];
@@ -334,7 +332,7 @@ function Payfast_link($params): string
  *
  * Called when a payment is to be processed and captured.
  *
- * The card cvv number will only be present for the initial card holder present
+ * The card cvv number will only be present for the initial cardholder present
  * transactions. Automated recurring capture attempts will not provide it.
  *
  * @param array $params Payment Gateway Module Parameters
@@ -343,17 +341,20 @@ function Payfast_link($params): string
  * @see https://developers.whmcs.com/payment-gateways/merchant-gateway/
  *
  */
-function Payfast_capture($params): array
+function Payfast_capture(array $params): array
 {
     App::load_function('gateway');
     // Detect module name from filename.
+
+    // Instantiate the PayfastCommon class
+    $payfastCommon = new PayfastCommon(true);
 
     // Fetch gateway configuration parameters.
     $gatewayParams = getGatewayVariables('payfast');
 
     define('PF_DEBUG', $gatewayParams['debug'] == 'on');
 
-    PayfastCommon::pflog('Payfast capture called');
+    $payfastCommon->pflog('Payfast capture called');
 
     // Payfast Configuration Parameters
     $merchantId = $params['merchant_id'];
@@ -372,7 +373,7 @@ function Payfast_capture($params): array
     if ($testMode == 'on') {
         $url = $url . '?testing=true';
         //Log testing true
-        PayfastCommon::pflog("url: ?testing=true");
+        $payfastCommon->pflog("url: ?testing=true");
 
         //Use default sandbox credentials if no merchant id set
         if (empty($params['merchant_id'])) {
@@ -401,10 +402,10 @@ function Payfast_capture($params): array
     $signature = md5(http_build_query($orderedPrehash));
 
     //log Post data
-    PayfastCommon::pflog('version: ' . $hashArray['version']);
-    PayfastCommon::pflog('merchant-id: ' . $hashArray['merchant-id']);
-    PayfastCommon::pflog('signature: ' . $signature);
-    PayfastCommon::pflog('timestamp: ' . $hashArray['timestamp']);
+    $payfastCommon->pflog('version: ' . $hashArray['version']);
+    $payfastCommon->pflog('merchant-id: ' . $hashArray['merchant-id']);
+    $payfastCommon->pflog('signature: ' . $signature);
+    $payfastCommon->pflog('timestamp: ' . $hashArray['timestamp']);
 
     // configure curl
     $ch = curl_init($url);
@@ -424,14 +425,14 @@ function Payfast_capture($params): array
 
     $response = curl_exec($ch);
     //Log API response
-    PayfastCommon::pflog('response :' . $response);
+    $payfastCommon->pflog('response :' . $response);
 
     curl_close($ch);
 
     $pfResponse = json_decode($response);
 
     // Close log
-    PayfastCommon::pflog('', true);
+    $payfastCommon->pflog('', true);
 
     return array(
         // 'success' if successful, otherwise 'declined', 'error' for failure
@@ -454,7 +455,7 @@ function Payfast_capture($params): array
  *
  **
  */
-function cleanupTblHosting($params): void
+function cleanupTblHosting(array $params): void
 {
     $userId   = $params['clientdetails']['userid'];
     $oldSubId = Illuminate\Database\Capsule\Manager::table('tblhosting')
