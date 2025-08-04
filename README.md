@@ -1,6 +1,6 @@
 # mod-whmcs
 
-## Payfast WHMCS Module for WHMCS v8.11
+## Payfast WHMCS Module for WHMCS v9.1
 
 This is the Payfast module for WHMCS. Please feel free to [contact the Payfast support team](https://payfast.io/contact/) should you require any assistance.
 
