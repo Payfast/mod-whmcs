@@ -69,6 +69,12 @@ $payfastCommon->pflog('Get posted data');
 // Posted variables from ITN
 $pfData = $payfastCommon->pfGetData();
 
+foreach ($pfData as $key => $value) {
+    if (is_string($value)) {
+        $pfData[$key] = str_replace('&amp;', '&', $value);
+    }
+}
+
 $payfastCommon->pflog('Payfast Data: ' . print_r($pfData, true));
 
 if ($pfData === false) {
